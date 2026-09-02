@@ -1,0 +1,1416 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Vrh šikmý – badatelna dosahu</title>
+  <style>
+    :root {
+      --ink: #102538;
+      --muted: #577083;
+      --paper: #f4f8fb;
+      --panel: #ffffff;
+      --line: #cbd9e3;
+      --grid: #dfe8ee;
+      --blue: #1268a5;
+      --blue-soft: #e2f1fb;
+      --orange: #d55a16;
+      --orange-soft: #fff0e6;
+      --green: #167252;
+      --green-soft: #e1f4ec;
+      --violet: #7251b5;
+      --yellow: #f4c542;
+      --danger: #a93434;
+      --shadow: 0 10px 28px rgba(34, 68, 92, .10);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(18,104,165,.10), transparent 28rem),
+        linear-gradient(180deg, #f8fbfd 0%, var(--paper) 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    button, input { font: inherit; }
+    button, input[type="range"] { cursor: pointer; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(18,104,165,.35);
+      outline-offset: 3px;
+    }
+
+    .app { max-width: 1500px; margin: 0 auto; padding: 22px; }
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--blue);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.55rem); line-height: 1.08; letter-spacing: -.025em; }
+    .subtitle { margin: 8px 0 0; color: var(--muted); max-width: 68ch; }
+    .privacy {
+      flex: 0 0 auto;
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,.78);
+      font-size: .82rem;
+      white-space: nowrap;
+    }
+
+    .lesson-steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 0;
+      list-style: none;
+    }
+    .lesson-step {
+      min-height: 58px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.72);
+      color: var(--muted);
+    }
+    .lesson-step strong { display: block; color: var(--ink); font-size: .91rem; }
+    .lesson-step small { display: block; font-size: .76rem; }
+    .step-number {
+      width: 29px; height: 29px; flex: 0 0 29px;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: #e8eff4;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .lesson-step.active { border-color: rgba(18,104,165,.55); background: var(--blue-soft); }
+    .lesson-step.active .step-number { background: var(--blue); color: #fff; }
+    .lesson-step.done { border-color: rgba(22,114,82,.32); background: var(--green-soft); }
+    .lesson-step.done .step-number { background: var(--green); color: #fff; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(145,170,187,.5);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .controls { padding: 18px; position: sticky; top: 12px; }
+    .controls h2, .graph-title h2, .history h2 { margin: 0; font-size: 1.08rem; }
+    .field { margin-top: 20px; }
+    .field-label { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font-weight: 750; }
+    .value-bubble { color: var(--blue); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+    .hint { color: var(--muted); font-size: .79rem; margin-top: 6px; }
+    input[type="range"] { width: 100%; accent-color: var(--blue); }
+    .range-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: .74rem; }
+    .pair-readout {
+      margin-top: 9px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--violet);
+      border-radius: 0 10px 10px 0;
+      background: #f4effc;
+      font-size: .85rem;
+    }
+    .pair-readout strong { color: var(--violet); }
+    .model-status {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--green-soft);
+      border: 1px solid rgba(22,114,82,.22);
+      color: var(--green);
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .model-status.extended {
+      background: #fff7d8;
+      border-color: rgba(177,130,0,.26);
+      color: #765800;
+    }
+    .predict-box {
+      margin-top: 20px;
+      padding: 13px;
+      border-radius: 13px;
+      background: var(--orange-soft);
+      border: 1px solid rgba(213,90,22,.25);
+    }
+    .predict-box .field { margin-top: 0; }
+    .predict-box .field-label { color: #8a3d12; }
+    .predict-box input[type="range"] { accent-color: var(--orange); }
+    .actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 16px; }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 11px 14px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 750;
+      transition: transform .12s ease, background .12s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); background: #f4f8fb; }
+    .btn:disabled { cursor: not-allowed; opacity: .52; }
+    .btn-primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #0d588c; }
+    .btn-icon { width: 46px; padding-inline: 0; }
+    .secondary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .btn-small { padding: 8px 9px; font-size: .8rem; }
+    .timer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .77rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .main-column { min-width: 0; display: grid; gap: 18px; }
+    .sim-panel, .lower-grid, .history, .mission, .telemetry, .live-values, .why-panel { min-width: 0; }
+    .sim-panel { overflow: hidden; }
+    .graph-head {
+      padding: 14px 16px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .graph-title p { margin: 3px 0 0; color: var(--muted); font-size: .8rem; }
+    .legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 11px; color: var(--muted); font-size: .75rem; }
+    .legend-item { display: inline-flex; gap: 6px; align-items: center; }
+    .legend-line { width: 24px; height: 0; border-top: 3px solid var(--blue); }
+    .legend-line.old { border-top-color: #86a2b6; border-top-width: 2px; }
+    .legend-flag { color: var(--orange); font-size: 1.05rem; }
+    .stage-wrap { position: relative; min-height: 430px; background: linear-gradient(#f8fcff, #eef7fb); }
+    #trajectorySvg { width: 100%; height: 430px; display: block; touch-action: none; }
+    .stage-tip {
+      position: absolute;
+      top: 12px; left: 14px;
+      max-width: 330px;
+      padding: 7px 10px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .76rem;
+      pointer-events: none;
+    }
+
+    .telemetry {
+      display: grid;
+      grid-template-columns: minmax(180px, .8fr) minmax(300px, 1.2fr);
+      border-top: 1px solid var(--line);
+    }
+    .live-values { padding: 14px 16px; border-right: 1px solid var(--line); }
+    .live-values h3, .why-panel h3 { margin: 0 0 9px; font-size: .9rem; }
+    .metric-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 4px 0; font-size: .82rem; }
+    .metric-row output { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .metric-row.vx output { color: var(--blue); }
+    .metric-row.vy output { color: var(--orange); }
+    .metric-row .constant { font-size: .66rem; color: var(--green); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+    .why-panel { padding: 14px 16px; }
+    .factor-row { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 8px; }
+    .factor {
+      padding: 9px 10px;
+      border-radius: 10px;
+      background: #f2f6f9;
+      text-align: center;
+      min-width: 0;
+    }
+    .factor span { display: block; color: var(--muted); font-size: .7rem; }
+    .factor strong { display: block; margin-top: 2px; font-size: 1rem; font-variant-numeric: tabular-nums; }
+    .operator { font-weight: 900; color: var(--muted); }
+    .equation-note { margin: 8px 0 0; color: var(--muted); font-size: .75rem; }
+    .flight-message { min-height: 24px; margin-top: 8px; font-size: .79rem; font-weight: 700; color: var(--blue); }
+
+    .lower-grid { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(260px,.7fr); gap: 18px; }
+    .history, .mission { padding: 17px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .section-head p { margin: 0; color: var(--muted); font-size: .75rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .79rem; }
+    th, td { padding: 8px 7px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+    th { color: var(--muted); font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    th:first-child, td:first-child { text-align: center; }
+    tbody tr.latest { background: var(--blue-soft); }
+    .empty-cell { text-align: center !important; color: var(--muted); padding: 22px; white-space: normal; }
+    .mission h2 { margin: 0 0 4px; font-size: 1.08rem; }
+    .mission > p { margin: 0 0 13px; color: var(--muted); font-size: .8rem; }
+    .check-list { display: grid; gap: 8px; }
+    .check-item {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 9px;
+      align-items: start;
+      padding: 9px;
+      border-radius: 11px;
+      background: #f3f7fa;
+    }
+    .check-icon {
+      width: 24px; height: 24px;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: #dce7ee;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: .8rem;
+    }
+    .check-item.done { background: var(--green-soft); }
+    .check-item.done .check-icon { background: var(--green); color: #fff; }
+    .check-item strong { display: block; font-size: .8rem; }
+    .check-item span { display: block; color: var(--muted); font-size: .72rem; margin-top: 2px; }
+    .conclusion {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--green-soft);
+      border: 1px solid rgba(22,114,82,.25);
+      font-size: .82rem;
+    }
+    .conclusion.show { display: block; }
+    .conclusion strong { color: var(--green); }
+    .notebook {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      z-index: 10;
+      max-width: min(390px, calc(100vw - 36px));
+      padding: 11px 14px;
+      border-radius: 11px;
+      background: var(--ink);
+      color: #fff;
+      box-shadow: var(--shadow);
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      font-size: .82rem;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    .axis { stroke: #5e7484; stroke-width: 1.5; }
+    .grid-line { stroke: var(--grid); stroke-width: 1; }
+    .axis-label, .tick-label { fill: #536d7f; font-family: inherit; }
+    .axis-label { font-size: 13px; font-weight: 700; }
+    .tick-label { font-size: 11px; }
+    .trail-old { fill: none; stroke: #8aa3b4; stroke-width: 2; opacity: .52; }
+    .trail-current { fill: none; stroke: var(--blue); stroke-width: 4; }
+    .trail-pair { fill: none; stroke: var(--violet); stroke-width: 3; stroke-dasharray: 8 6; }
+    .projectile { fill: var(--orange); stroke: #fff; stroke-width: 3; }
+    .velocity-vx { stroke: var(--blue); stroke-width: 4; marker-end: url(#arrowBlue); }
+    .velocity-vy { stroke: var(--orange); stroke-width: 4; marker-end: url(#arrowOrange); }
+    .predict-line { stroke: var(--orange); stroke-width: 2; stroke-dasharray: 5 5; }
+    .predict-flag { fill: var(--orange); }
+    .predict-text { fill: #93400f; font-family: inherit; font-size: 12px; font-weight: 800; }
+    .landing-ring { fill: none; stroke: var(--green); stroke-width: 3; }
+    .start-platform { stroke: var(--violet); stroke-width: 4; stroke-linecap: round; }
+    .height-guide { stroke: var(--violet); stroke-width: 1.5; stroke-dasharray: 4 4; }
+    .height-label { fill: var(--violet); font-family: inherit; font-size: 12px; font-weight: 800; paint-order: stroke; stroke: #fff; stroke-width: 4px; }
+    .launcher-ramp { stroke: var(--muted); stroke-width: 4; stroke-linecap: round; opacity: .72; }
+    .launcher-support { stroke: var(--line); stroke-width: 5; }
+    .cannon-barrel { stroke: var(--ink); stroke-width: 10; stroke-linecap: round; }
+    .cannon-body { fill: var(--ink); }
+    .cannon-wheel { fill: var(--paper); stroke: var(--ink); stroke-width: 3; }
+    .cannon-hub { fill: var(--ink); }
+    .launch-vector { stroke: var(--blue); stroke-width: 3.5; marker-end: url(#arrowBlue); }
+    .launch-vector-label, .launch-angle-label {
+      fill: var(--blue);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      paint-order: stroke;
+      stroke: var(--paper);
+      stroke-width: 5px;
+    }
+    .launch-angle { fill: none; stroke: var(--blue); stroke-width: 1.5; }
+    .vector-label { font-family: inherit; font-size: 12px; font-weight: 800; paint-order: stroke; stroke: #fff; stroke-width: 4px; }
+    .vx-label { fill: var(--blue); }
+    .vy-label { fill: var(--orange); }
+
+    @media (max-width: 1020px) {
+      .workspace { grid-template-columns: 280px minmax(0,1fr); }
+      .stage-wrap, #trajectorySvg { height: 390px; min-height: 390px; }
+      .lower-grid { grid-template-columns: minmax(0,1fr); }
+    }
+    @media (max-width: 800px) {
+      .app { padding: 12px; }
+      .topbar { display: block; }
+      .privacy { margin-top: 10px; }
+      .lesson-steps { grid-template-columns: repeat(2,1fr); }
+      .workspace { grid-template-columns: minmax(0,1fr); }
+      .controls { position: static; }
+      .telemetry { grid-template-columns: 1fr; }
+      .live-values { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+    @media (max-width: 520px) {
+      .lesson-steps { grid-template-columns: 1fr; }
+      .lesson-step small { display: none; }
+      .lesson-step { min-height: 45px; }
+      .graph-head { display: block; }
+      .legend { justify-content: flex-start; margin-top: 8px; }
+      .stage-wrap, #trajectorySvg { height: 330px; min-height: 330px; }
+      .factor-row { gap: 4px; }
+      .factor { padding: 7px 4px; }
+      .factor strong { font-size: .86rem; }
+      .operator { font-size: .8rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+
+    /* Vzdušná výuková sazba: jedna obrazovka, jedna myšlenka. */
+    :root {
+      --ink: #30343a;
+      --muted: #626a73;
+      --paper: #f8f8f5;
+      --panel: transparent;
+      --line: #d9dde1;
+      --grid: #e5e7e9;
+      --blue: #0757d9;
+      --blue-soft: #e9f0fc;
+      --orange: #b9572d;
+      --orange-soft: #faeee8;
+      --green: #38715d;
+      --green-soft: #eaf3ef;
+      --violet: #6d6385;
+      --shadow: none;
+      --radius: 0;
+    }
+    body {
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+    strong, h1, h2, h3, .eyebrow, .field-label, .btn, th, .step-number,
+    .flight-message, .model-status, .value-bubble { font-weight: 700; }
+    .app { max-width: 1440px; padding: 36px clamp(24px, 5vw, 72px) 56px; }
+    .topbar { margin-bottom: 48px; align-items: center; }
+    .eyebrow { color: var(--ink); font-size: .78rem; letter-spacing: .13em; }
+    h1 { font-size: clamp(2.2rem, 4.5vw, 4.25rem); line-height: 1.02; max-width: 15ch; }
+    .subtitle { max-width: 62ch; margin-top: 18px; font-size: 1.05rem; }
+    .privacy { border: 0; background: transparent; padding: 0; }
+
+    .lesson-steps {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+    .lesson-steps > li { min-width: 0; }
+    .lesson-step {
+      width: 100%;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      align-items: flex-start;
+    }
+    .lesson-step:hover { color: var(--ink); }
+    .lesson-step strong { color: inherit; font-size: .92rem; }
+    .lesson-step small { font-size: .76rem; }
+    .step-number {
+      width: 30px; height: 30px; flex-basis: 30px;
+      background: #e7e9eb;
+      color: var(--muted);
+    }
+    .lesson-step.active, .lesson-step.done { border: 0; background: transparent; }
+    .lesson-step.active { color: var(--ink); }
+    .lesson-step.active .step-number { background: var(--blue); color: #fff; }
+    .lesson-step.done .step-number { background: #dfe8e4; color: var(--green); }
+    .lesson-step.done.active .step-number { background: var(--blue); color: #fff; }
+
+    .screen-copy { max-width: 66ch; margin: 0 0 52px; }
+    .screen-kicker { margin: 0 0 8px; color: var(--blue); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .screen-copy h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.65rem); line-height: 1.15; }
+    .screen-copy > p:last-child { margin: 16px 0 0; max-width: 66ch; color: var(--muted); font-size: 1.03rem; }
+
+    .workspace { grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); gap: clamp(44px, 6vw, 88px); }
+    .panel { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+    .controls { padding: 0; position: static; }
+    .controls h2, .graph-title h2, .history h2, .mission h2 { font-size: 1.22rem; }
+    .field { margin-top: 34px; }
+    .field:first-of-type { margin-top: 28px; }
+    .hint, .range-labels { font-size: .78rem; }
+    .pair-readout {
+      margin-top: 18px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+    }
+    .model-status, .model-status.extended {
+      margin-top: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+    }
+    .predict-box {
+      margin-top: 40px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    .predict-box .field-label { color: var(--ink); }
+    .predict-box output { color: var(--orange); }
+    .actions { margin-top: 38px; gap: 14px; }
+    .secondary-actions { margin-top: 14px; gap: 14px; }
+    .btn {
+      border: 0;
+      border-radius: 7px;
+      padding: 12px 16px;
+      background: transparent;
+      color: var(--ink);
+    }
+    .btn:hover:not(:disabled) { background: #eceeec; transform: none; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #0649b8; }
+    .timer { margin-top: 26px; }
+
+    .sim-panel { overflow: visible; }
+    .graph-head { padding: 0 0 24px; border: 0; align-items: flex-start; }
+    .graph-title p { max-width: 66ch; font-size: .8rem; }
+    .legend { font-size: .74rem; gap: 18px; }
+    .stage-wrap { min-height: 440px; background: #f0f3f4; }
+    #trajectorySvg { height: 440px; }
+    .stage-tip { top: 18px; left: 18px; border: 0; border-radius: 4px; box-shadow: none; }
+    .telemetry { margin-top: 40px; grid-template-columns: minmax(210px,.7fr) minmax(340px,1.3fr); gap: 56px; border: 0; }
+    .live-values, .why-panel { padding: 0; border: 0; }
+    .live-values { border-right: 0; }
+    .metric-row { padding: 6px 0; }
+    .factor-row { gap: 18px; }
+    .factor { padding: 0; border-radius: 0; background: transparent; }
+    .equation-note { max-width: 66ch; margin-top: 20px; font-size: .82rem; }
+
+    .lower-grid { grid-template-columns: minmax(0,1.35fr) minmax(280px,.65fr); gap: clamp(48px, 7vw, 96px); }
+    .history, .mission { padding: 0; }
+    .section-head { margin-bottom: 28px; }
+    table { border-collapse: separate; border-spacing: 0 10px; }
+    th, td { border: 0; padding: 10px 8px; }
+    tbody tr.latest { background: var(--blue-soft); }
+    .check-list { gap: 22px; margin-top: 28px; }
+    .check-item, .check-item.done { padding: 0; border-radius: 0; background: transparent; }
+    .check-icon { background: #e4e7e8; }
+    .check-item.done .check-icon { background: var(--green); }
+    .conclusion, .conclusion.show { margin-top: 36px; padding: 20px 0 0; border: 0; border-radius: 0; background: transparent; }
+    .notebook { margin-top: 34px; padding-top: 0; border: 0; }
+
+    .screen-nav {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 24px;
+      margin-top: 64px;
+    }
+    .screen-nav #prevScreenBtn { justify-self: start; }
+    .screen-nav #nextScreenBtn { justify-self: end; }
+    .screen-nav span { color: var(--muted); font-size: .82rem; }
+
+    body[data-view] .lower-grid { display: none; }
+    body:not([data-view="1"]) .topbar { display: none; }
+    body[data-view="1"] .telemetry,
+    body[data-view="3"] .telemetry,
+    body[data-view="4"] .telemetry { display: none; }
+    body[data-view="2"] .workspace { grid-template-columns: 1fr; }
+    body[data-view="2"] .controls {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 18px;
+    }
+    body[data-view="2"] .controls > h2,
+    body[data-view="2"] .controls > .field,
+    body[data-view="2"] .controls > .predict-box,
+    body[data-view="2"] .controls > .model-status,
+    body[data-view="2"] .controls > .secondary-actions,
+    body[data-view="2"] .controls > .timer { display: none; }
+    body[data-view="2"] .controls .actions { width: min(100%, 360px); margin: 0; }
+    body[data-view="2"] .controls { grid-row: 2; }
+    body[data-view="2"] .main-column { grid-row: 1; }
+
+    body[data-view="3"] .controls > .field-speed,
+    body[data-view="3"] .controls > .field-height,
+    body[data-view="3"] .controls > .field-drag,
+    body[data-view="4"] .controls > .field-speed,
+    body[data-view="4"] .controls > .field-height,
+    body[data-view="4"] .controls > .field-drag { display: none; }
+    body[data-view="4"] #pairBtn { display: none; }
+    body[data-view="4"] .secondary-actions { grid-template-columns: 1fr; }
+
+    body[data-view="5"] .workspace { grid-template-columns: 1fr; }
+    body[data-view="5"] .controls,
+    body[data-view="5"] .sim-panel { display: none; }
+    body[data-view="5"] .lower-grid { display: grid; }
+
+    @media (max-width: 900px) {
+      .lesson-steps { grid-template-columns: repeat(5, minmax(110px,1fr)); overflow-x: auto; padding-bottom: 8px; }
+      .workspace { grid-template-columns: 1fr; }
+      .controls { max-width: 640px; }
+      .telemetry { grid-template-columns: 1fr; gap: 34px; }
+      .lower-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      body { font-size: 16px; }
+      .app { padding: 24px 18px 40px; }
+      .topbar { margin-bottom: 34px; }
+      .privacy { margin-top: 16px; }
+      .lesson-steps { margin-bottom: 44px; gap: 18px; }
+      .lesson-step { min-height: 0; }
+      .lesson-step small { display: block; }
+      .screen-copy { margin-bottom: 40px; }
+      .graph-head { display: block; }
+      .factor-row { grid-template-columns: 1fr; text-align: left; }
+      .factor { text-align: left; }
+      .operator { display: none; }
+      .screen-nav { grid-template-columns: 1fr 1fr; }
+      .screen-nav span { display: none; }
+      .screen-nav #nextScreenBtn { text-align: right; }
+    }
+  </style>
+  <link rel="stylesheet" href="spsei-theme.css">
+</head>
+<body class="projectile-app">
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <a class="school-home" href="index.html" aria-label="Zpět na rozcestník fyzikálních aplikací"><span><small>&lt;spšei Ostrava&gt;</small><strong>Fyzikální aplikace</strong></span></a>
+        <p class="eyebrow">Fyzikální badatelna · 20 minut</p>
+        <h1>Kam doletí vrh šikmý?</h1>
+        <p class="subtitle">Nejdřív odhadni dopad. Potom sleduj, jak vodorovná a svislá složka rychlosti společně určují dosah.</p>
+      </div>
+      <div class="privacy" aria-label="Provozní informace">● Offline · bez ukládání dat</div>
+    </header>
+
+    <ol class="lesson-steps" aria-label="Postup práce">
+      <li><button class="lesson-step active" type="button" data-screen="1"><span class="step-number">1</span><span><strong>Odhad</strong><small>Nastav pokus</small></span></button></li>
+      <li><button class="lesson-step" type="button" data-screen="2"><span class="step-number">2</span><span><strong>Složky</strong><small>Sleduj vₓ a vᵧ</small></span></button></li>
+      <li><button class="lesson-step" type="button" data-screen="3"><span class="step-number">3</span><span><strong>Dvojice</strong><small>Porovnej úhly</small></span></button></li>
+      <li><button class="lesson-step" type="button" data-screen="4"><span class="step-number">4</span><span><strong>Maximum</strong><small>Najdi nejlepší úhel</small></span></button></li>
+      <li><button class="lesson-step" type="button" data-screen="5"><span class="step-number">5</span><span><strong>Výsledky</strong><small>Zapiš závěr</small></span></button></li>
+    </ol>
+
+    <div class="screen-copy" aria-live="polite">
+      <p class="screen-kicker" id="screenKicker">Krok 1 z 5</p>
+      <h2 id="screenTitle">Nejdřív předpověz dopad</h2>
+      <p id="screenIntro">Nastav podmínky pokusu a umísti oranžovou vlajku. Skutečnou dráhu uvidíš až po spuštění.</p>
+    </div>
+
+    <div class="workspace">
+      <aside class="panel controls" aria-label="Nastavení pokusu">
+        <h2>Nastavení pokusu</h2>
+
+        <div class="field field-angle">
+          <label class="field-label" for="angleRange"><span>Úhel výstřelu α</span><output class="value-bubble" id="angleValue">30°</output></label>
+          <input id="angleRange" type="range" min="5" max="85" step="1" value="30">
+          <div class="range-labels"><span>5°</span><span>45°</span><span>85°</span></div>
+          <div class="pair-readout">Doplňkový úhel: <strong id="complementValue">60°</strong>. Jejich součet je 90°.</div>
+        </div>
+
+        <div class="field field-speed">
+          <label class="field-label" for="speedRange"><span>Počáteční rychlost v₀</span><output class="value-bubble" id="speedValue">20 m/s</output></label>
+          <input id="speedRange" type="range" min="10" max="35" step="1" value="20">
+          <div class="range-labels"><span>10 m/s</span><span>35 m/s</span></div>
+          <div class="hint">Pro porovnání úhlů rychlost neměň.</div>
+        </div>
+
+        <div class="field field-height">
+          <label class="field-label" for="heightRange"><span>Počáteční výška h₀</span><output class="value-bubble" id="heightValue">0 m</output></label>
+          <input id="heightRange" type="range" min="0" max="20" step="1" value="0">
+          <div class="range-labels"><span>země</span><span>20 m</span></div>
+        </div>
+
+        <div class="field field-drag">
+          <label class="field-label" for="dragRange"><span>Odpor vzduchu</span><output class="value-bubble" id="dragValue">vypnutý</output></label>
+          <input id="dragRange" type="range" min="0" max="0.04" step="0.005" value="0">
+          <div class="range-labels"><span>bez odporu</span><span>silný</span></div>
+          <div class="hint" id="dragHint">Kvadratický model, k = 0 m⁻¹.</div>
+        </div>
+
+        <div class="model-status" id="modelStatus">Ideální režim: přesně platí dvojice α a 90° − α i maximum při 45°.</div>
+
+        <div class="predict-box field-prediction">
+          <div class="field">
+            <label class="field-label" for="predictionRange"><span>Tvůj odhad dopadu</span><output id="predictionValue">30,0 m</output></label>
+            <input id="predictionRange" type="range" min="0" max="180" step="0.5" value="30">
+            <div class="hint">Posuň oranžovou vlajku nebo klikni do grafu.</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="launchBtn" class="btn btn-primary" type="button">▶ Spustit vrh</button>
+          <button id="pauseBtn" class="btn btn-icon" type="button" aria-label="Pozastavit animaci" disabled>Ⅱ</button>
+        </div>
+        <div class="secondary-actions">
+          <button id="pairBtn" class="btn btn-small" type="button">↔ Nastavit 60°</button>
+          <button id="clearBtn" class="btn btn-small" type="button">Smazat dráhy</button>
+        </div>
+        <div class="timer"><span>Čas práce: přibližně 20 min</span><span id="trialCount">0 pokusů</span></div>
+      </aside>
+
+      <section class="main-column">
+        <section class="panel sim-panel" aria-labelledby="graphHeading">
+          <div class="graph-head">
+            <div class="graph-title">
+              <h2 id="graphHeading">Let a složky rychlosti</h2>
+              <p id="graphAssumptions">Bez odporu vzduchu, g = 9,81 m/s², start i dopad ve stejné výšce.</p>
+            </div>
+            <div class="legend" aria-label="Legenda">
+              <span class="legend-item"><span class="legend-line"></span>aktuální dráha</span>
+              <span class="legend-item"><span class="legend-line old"></span>předchozí dráhy</span>
+              <span class="legend-item"><span class="legend-flag">⚑</span>odhad</span>
+            </div>
+          </div>
+
+          <div class="stage-wrap">
+            <svg id="trajectorySvg" role="img" aria-labelledby="trajectoryTitle trajectoryDesc" tabindex="0">
+              <title id="trajectoryTitle">Graf trajektorie vrhu šikmého</title>
+              <desc id="trajectoryDesc">Interaktivní graf polohy tělesa a vodorovné a svislé složky jeho rychlosti.</desc>
+            </svg>
+            <div class="stage-tip" id="stageTip">Než spustíš vrh, umísti oranžovou vlajku tam, kde čekáš dopad.</div>
+          </div>
+
+          <div class="telemetry" aria-live="polite">
+            <div class="live-values">
+              <h3>Co se děje právě teď</h3>
+              <div class="metric-row"><span>čas t</span><output id="timeNow">0,00 s</output></div>
+              <div class="metric-row vx"><span>v<sub>x</sub> <span class="constant" id="vxState">stálá</span></span><output id="vxNow">17,32 m/s</output></div>
+              <div class="metric-row vy"><span>v<sub>y</sub> <span id="vyState">klesá</span></span><output id="vyNow">10,00 m/s</output></div>
+              <div class="flight-message" id="flightMessage">Vodorovná složka se po celý let nezmění.</div>
+            </div>
+            <div class="why-panel">
+              <h3>Dosah bez slepého dosazování</h3>
+              <div class="factor-row" aria-label="Dosah se rovná vodorovná rychlost krát doba letu">
+                <div class="factor"><span id="factorVxLabel">vodorovně za 1 s</span><strong id="factorVx">17,32 m/s</strong></div>
+                <div class="operator">×</div>
+                <div class="factor"><span>doba ve vzduchu</span><strong id="factorTime">2,04 s</strong></div>
+                <div class="operator">=</div>
+                <div class="factor"><span>dosah</span><strong id="factorRange">35,31 m</strong></div>
+              </div>
+              <p class="equation-note" id="equationNote">Větší úhel znamená menší v<sub>x</sub>, ale delší let. U doplňkových úhlů se tyto dvě změny přesně vyrovnají.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="lower-grid">
+          <section class="panel history" aria-labelledby="historyHeading">
+            <div class="section-head">
+              <div><h2 id="historyHeading">Naměřené hodnoty</h2><p>Posledních 10 pokusů · přepiš vybraných 5 řádků do sešitu.</p></div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>#</th><th>α</th><th>v₀</th><th>h₀</th><th>odpor k</th><th>v<sub>x0</sub></th><th>v<sub>y0</sub></th><th>čas letu</th><th>dosah</th><th>chyba odhadu</th></tr></thead>
+                <tbody id="historyBody"><tr><td colspan="10" class="empty-cell">Zatím žádná data. Nastav odhad a spusť první vrh.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside class="panel mission" aria-labelledby="missionHeading">
+            <h2 id="missionHeading">Badatelská mise</h2>
+            <p>Úkoly se odškrtávají podle tvých pokusů.</p>
+            <div class="check-list">
+              <div class="check-item" id="missionPredict"><div class="check-icon">1</div><div><strong>Odhadni a vystřel</strong><span>Porovnej vlajku se skutečným dopadem.</span></div></div>
+              <div class="check-item" id="missionPair"><div class="check-icon">2</div><div><strong>Porovnej doplňkové úhly</strong><span>Se stejným v₀, h₀ a odporem zkus α i 90° − α.</span></div></div>
+              <div class="check-item" id="missionMax"><div class="check-icon">3</div><div><strong>Najdi největší dosah</strong><span>Vyzkoušej 30°, 45° a 60° při stejném v₀, h₀ a odporu.</span></div></div>
+            </div>
+            <div class="conclusion" id="conclusion" aria-live="polite">
+              <strong>Objev:</strong> <span id="conclusionText">Doplňkové úhly mají stejný dosah. Největší dosah na vodorovné rovině má 45°.</span>
+            </div>
+            <div class="notebook"><strong>Do sešitu:</strong> tabulka α, h₀, odporu, v<sub>x0</sub>, času letu a dosahu + věta, kdy doplňkové úhly doletí stejně.</div>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <nav class="screen-nav" aria-label="Navigace mezi kroky">
+      <button id="prevScreenBtn" class="btn" type="button">← Předchozí</button>
+      <span id="screenProgress">1 / 5</span>
+      <button id="nextScreenBtn" class="btn btn-primary" type="button">Další: složky →</button>
+    </nav>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const G = 9.81;
+      const MAX_HISTORY = 10;
+      const $ = (id) => document.getElementById(id);
+      const svg = $('trajectorySvg');
+      const els = {
+        angle: $('angleRange'), speed: $('speedRange'), height: $('heightRange'), drag: $('dragRange'), prediction: $('predictionRange'),
+        angleValue: $('angleValue'), speedValue: $('speedValue'), heightValue: $('heightValue'), dragValue: $('dragValue'), dragHint: $('dragHint'), predictionValue: $('predictionValue'),
+        complement: $('complementValue'), pairBtn: $('pairBtn'), launchBtn: $('launchBtn'),
+        pauseBtn: $('pauseBtn'), clearBtn: $('clearBtn'), historyBody: $('historyBody'),
+        trialCount: $('trialCount'), timeNow: $('timeNow'), vxNow: $('vxNow'), vyNow: $('vyNow'),
+        vxState: $('vxState'), vyState: $('vyState'), factorVx: $('factorVx'), factorVxLabel: $('factorVxLabel'), factorTime: $('factorTime'),
+        factorRange: $('factorRange'), flightMessage: $('flightMessage'), stageTip: $('stageTip'),
+        toast: $('toast'), conclusion: $('conclusion'), conclusionText: $('conclusionText'),
+        graphAssumptions: $('graphAssumptions'), equationNote: $('equationNote'), modelStatus: $('modelStatus'),
+        screenKicker: $('screenKicker'), screenTitle: $('screenTitle'), screenIntro: $('screenIntro'),
+        screenProgress: $('screenProgress'), prevScreenBtn: $('prevScreenBtn'), nextScreenBtn: $('nextScreenBtn')
+      };
+
+      const state = {
+        angle: 30,
+        speed: 20,
+        initialHeight: 0,
+        drag: 0,
+        prediction: 30,
+        history: [],
+        activeTrial: null,
+        animationId: null,
+        paused: false,
+        elapsedAtPause: 0,
+        animationStart: 0,
+        view: { width: 900, height: 430, left: 58, right: 22, top: 24, bottom: 45, xMax: 50, yMax: 20 },
+        dragPrediction: false,
+        currentScreen: 1
+      };
+
+      const screenContent = [
+        null,
+        {title:'Nejdřív předpověz dopad',intro:'Nastav podmínky pokusu a umísti oranžovou vlajku. Skutečnou dráhu uvidíš až po spuštění.',next:'Další: složky →'},
+        {title:'Sleduj dvě rychlosti',intro:'Modrá šipka ukazuje vodorovnou složku vₓ, oranžová svislou vᵧ. Vrh můžeš pozastavit v libovolném okamžiku.',next:'Další: dvojice →'},
+        {title:'Porovnej doplňkové úhly',intro:'Změň pouze úhel na 90° − α. Rychlost, výšku i odpor nech stejné a znovu odhadni dopad.',next:'Další: maximum →'},
+        {title:'Který úhel doletí nejdál?',intro:'Při stejných podmínkách vyzkoušej 30°, 45° a 60°. Před každým vrhem nejdřív posuň odhad.',next:'Zobrazit výsledky →'},
+        {title:'Co ukázaly tvoje pokusy?',intro:'Vyber pět řádků do sešitu. Potom vlastními slovy vysvětli, kdy mají doplňkové úhly stejný dosah.',next:'Znovu od začátku ↺'}
+      ];
+
+      function showScreen(number) {
+        const n=Math.max(1,Math.min(5,number));
+        state.currentScreen=n;
+        document.body.dataset.view=String(n);
+        const content=screenContent[n];
+        els.screenKicker.textContent=`Krok ${n} z 5`;
+        els.screenTitle.textContent=content.title;
+        els.screenIntro.textContent=content.intro;
+        els.screenProgress.textContent=`${n} / 5`;
+        els.prevScreenBtn.disabled=n===1;
+        els.nextScreenBtn.textContent=content.next;
+        document.querySelectorAll('.lesson-step').forEach(button=>button.classList.toggle('active',Number(button.dataset.screen)===n));
+        requestAnimationFrame(()=>renderScene(state.activeTrial&&state.activeTrial.complete?1:null));
+        window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+      }
+
+      function fmt(n, digits = 2) {
+        return Number(n).toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+      }
+
+      function pluralTrials(n) {
+        if (n === 1) return '1 pokus';
+        if (n >= 2 && n <= 4) return n + ' pokusy';
+        return n + ' pokusů';
+      }
+
+      function derivative(s, drag) {
+        const v = Math.hypot(s.vx, s.vy);
+        return { x:s.vx, y:s.vy, vx:-drag*v*s.vx, vy:-G-drag*v*s.vy };
+      }
+
+      function rk4Step(s, dt, drag) {
+        const k1=derivative(s,drag);
+        const s2={x:s.x+k1.x*dt/2,y:s.y+k1.y*dt/2,vx:s.vx+k1.vx*dt/2,vy:s.vy+k1.vy*dt/2};
+        const k2=derivative(s2,drag);
+        const s3={x:s.x+k2.x*dt/2,y:s.y+k2.y*dt/2,vx:s.vx+k2.vx*dt/2,vy:s.vy+k2.vy*dt/2};
+        const k3=derivative(s3,drag);
+        const s4={x:s.x+k3.x*dt,y:s.y+k3.y*dt,vx:s.vx+k3.vx*dt,vy:s.vy+k3.vy*dt};
+        const k4=derivative(s4,drag);
+        return {
+          x:s.x+dt*(k1.x+2*k2.x+2*k3.x+k4.x)/6,
+          y:s.y+dt*(k1.y+2*k2.y+2*k3.y+k4.y)/6,
+          vx:s.vx+dt*(k1.vx+2*k2.vx+2*k3.vx+k4.vx)/6,
+          vy:s.vy+dt*(k1.vy+2*k2.vy+2*k3.vy+k4.vy)/6
+        };
+      }
+
+      function physics(angle = state.angle, speed = state.speed, initialHeight = state.initialHeight, drag = state.drag) {
+        const rad = angle * Math.PI / 180;
+        const vx0 = speed * Math.cos(rad);
+        const vy0 = speed * Math.sin(rad);
+        const points=[];
+
+        if (drag === 0) {
+          const flight=(vy0+Math.sqrt(vy0*vy0+2*G*initialHeight))/G;
+          const range=vx0*flight;
+          const maxHeight=initialHeight+vy0*vy0/(2*G);
+          const count=180;
+          for(let i=0;i<=count;i++){
+            const t=flight*i/count;
+            points.push({t,x:vx0*t,y:Math.max(0,initialHeight+vy0*t-.5*G*t*t),vx:vx0,vy:vy0-G*t});
+          }
+          return {angle,speed,rad,initialHeight,drag,vx:vx0,vx0,vy0,flight,range,maxHeight,avgVx:range/flight,points};
+        }
+
+        const dt=.008;
+        let t=0;
+        let s={x:0,y:initialHeight,vx:vx0,vy:vy0};
+        let maxHeight=initialHeight;
+        points.push({t,...s});
+        while(t<30){
+          const next=rk4Step(s,dt,drag);
+          const nextT=t+dt;
+          maxHeight=Math.max(maxHeight,next.y);
+          if(next.y<=0 && next.vy<0 && nextT>.02){
+            const ratio=s.y/(s.y-next.y);
+            const landed={
+              t:t+dt*ratio,
+              x:s.x+(next.x-s.x)*ratio,
+              y:0,
+              vx:s.vx+(next.vx-s.vx)*ratio,
+              vy:s.vy+(next.vy-s.vy)*ratio
+            };
+            points.push(landed);
+            const flight=landed.t, range=landed.x;
+            return {angle,speed,rad,initialHeight,drag,vx:vx0,vx0,vy0,flight,range,maxHeight,avgVx:range/flight,points};
+          }
+          t=nextT; s=next;
+          points.push({t,...s});
+        }
+        const last=points[points.length-1];
+        return {angle,speed,rad,initialHeight,drag,vx:vx0,vx0,vy0,flight:last.t,range:last.x,maxHeight,avgVx:last.x/last.t,points};
+      }
+
+      function niceMax(value, minimum) {
+        const raw = Math.max(value * 1.13, minimum);
+        const magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+        const normalized = raw / magnitude;
+        const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 2.5 ? 2.5 : normalized <= 5 ? 5 : 10;
+        return nice * magnitude;
+      }
+
+      function computeView() {
+        const rect = svg.getBoundingClientRect();
+        const width = Math.max(320, Math.round(rect.width || 900));
+        const height = Math.max(300, Math.round(rect.height || 430));
+        const current = state.activeTrial || physics();
+        let maxRange = Math.max(current.range, state.prediction, 10);
+        let maxHeight = Math.max(current.maxHeight, 4);
+        state.history.forEach(t => { maxRange = Math.max(maxRange, t.range); maxHeight = Math.max(maxHeight, t.maxHeight); });
+        const xMax = niceMax(maxRange, 20);
+        const usableRatio = (height - 69) / (width - 80);
+        const proportionalY = xMax * usableRatio;
+        const yMax = niceMax(Math.max(maxHeight, proportionalY * .33), 10);
+        state.view = { width, height, left: width < 520 ? 62 : 82, right: 20, top: 22, bottom: width < 520 ? 56 : 62, xMax, yMax };
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      }
+
+      function sx(x) {
+        const v = state.view;
+        return v.left + (x / v.xMax) * (v.width - v.left - v.right);
+      }
+      function sy(y) {
+        const v = state.view;
+        return v.height - v.bottom - (y / v.yMax) * (v.height - v.top - v.bottom);
+      }
+
+      function tickStep(max, count = 6) {
+        const rough = max / count;
+        const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
+        const n = rough / magnitude;
+        return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * magnitude;
+      }
+
+      function pointAtTime(trial, t) {
+        const points=trial.points;
+        if(t<=0)return points[0];
+        if(t>=trial.flight)return points[points.length-1];
+        let lo=0,hi=points.length-1;
+        while(hi-lo>1){const mid=(lo+hi)>>1;if(points[mid].t<t)lo=mid;else hi=mid;}
+        const a=points[lo],b=points[hi],r=(t-a.t)/(b.t-a.t);
+        return {t,x:a.x+(b.x-a.x)*r,y:a.y+(b.y-a.y)*r,vx:a.vx+(b.vx-a.vx)*r,vy:a.vy+(b.vy-a.vy)*r};
+      }
+
+      function pathFor(trial, fraction = 1) {
+        const endTime=trial.flight*fraction;
+        const stride=Math.max(1,Math.ceil(trial.points.length/180));
+        let d='',drawn=0;
+        for(let i=0;i<trial.points.length;i+=stride){
+          const p=trial.points[i];
+          if(p.t>endTime)break;
+          d+=`${drawn++?'L':'M'}${sx(p.x).toFixed(1)},${sy(Math.max(0,p.y)).toFixed(1)} `;
+        }
+        const end=pointAtTime(trial,endTime);
+        d+=`${drawn?'L':'M'}${sx(end.x).toFixed(1)},${sy(Math.max(0,end.y)).toFixed(1)} `;
+        return d;
+      }
+
+      function svgNode(tag, attrs = {}, text = '') {
+        const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        Object.entries(attrs).forEach(([k,v]) => node.setAttribute(k, v));
+        if (text) node.textContent = text;
+        return node;
+      }
+
+      function drawAxes(group) {
+        const v = state.view;
+        const xStep = tickStep(v.xMax, v.width < 520 ? 4 : 7);
+        const yStep = tickStep(v.yMax, 5);
+        for (let x = 0; x <= v.xMax + xStep * .01; x += xStep) {
+          const px = sx(x);
+          group.appendChild(svgNode('line', { x1:px, y1:v.top, x2:px, y2:sy(0), class:'grid-line' }));
+          group.appendChild(svgNode('text', { x:px, y:sy(0)+18, 'text-anchor':'middle', class:'tick-label' }, fmt(x, xStep < 1 ? 1 : 0)));
+        }
+        for (let y = 0; y <= v.yMax + yStep * .01; y += yStep) {
+          const py = sy(y);
+          group.appendChild(svgNode('line', { x1:v.left, y1:py, x2:v.width-v.right, y2:py, class:'grid-line' }));
+          if (y > 0) group.appendChild(svgNode('text', { x:v.left-9, y:py+4, 'text-anchor':'end', class:'tick-label' }, fmt(y, yStep < 1 ? 1 : 0)));
+        }
+        group.appendChild(svgNode('line', { x1:v.left, y1:sy(0), x2:v.width-v.right, y2:sy(0), class:'axis' }));
+        group.appendChild(svgNode('line', { x1:v.left, y1:v.top, x2:v.left, y2:sy(0), class:'axis' }));
+        group.appendChild(svgNode('text', { x:(v.left+v.width-v.right)/2, y:v.height-8, 'text-anchor':'middle', class:'axis-label' }, 'vodorovná vzdálenost x (m)'));
+        group.appendChild(svgNode('text', { x:14, y:(v.top+sy(0))/2, transform:`rotate(-90 14 ${(v.top+sy(0))/2})`, 'text-anchor':'middle', class:'axis-label' }, 'výška y (m)'));
+      }
+
+      function drawPrediction(group) {
+        const px = sx(Math.min(state.prediction, state.view.xMax));
+        const ground = sy(0);
+        group.appendChild(svgNode('line', { x1:px, y1:ground, x2:px, y2:ground-47, class:'predict-line' }));
+        group.appendChild(svgNode('path', { d:`M${px},${ground-47} L${px+25},${ground-38} L${px},${ground-29} Z`, class:'predict-flag' }));
+        const anchor = px > state.view.width - 110 ? 'end' : 'start';
+        const tx = anchor === 'end' ? px - 5 : px + 5;
+        group.appendChild(svgNode('text', { x:tx, y:ground-53, 'text-anchor':anchor, class:'predict-text' }, `odhad ${fmt(state.prediction,1)} m`));
+      }
+
+      function drawStartHeight(group, trial) {
+        if(trial.initialHeight<=0)return;
+        const x0=sx(0), y0=sy(trial.initialHeight), ground=sy(0);
+        const platformEnd=sx(Math.min(state.view.xMax*.07,4));
+        group.appendChild(svgNode('line',{x1:x0,y1:y0,x2:platformEnd,y2:y0,class:'start-platform'}));
+        group.appendChild(svgNode('line',{x1:x0+8,y1:y0,x2:x0+8,y2:ground,class:'height-guide'}));
+        group.appendChild(svgNode('text',{x:x0+14,y:(y0+ground)/2+4,class:'height-label'},`h₀ = ${fmt(trial.initialHeight,0)} m`));
+      }
+
+      function drawLauncher(group, trial) {
+        const muzzleX=sx(0), muzzleY=sy(trial.initialHeight);
+        const ground=sy(0);
+        const angle=trial.angle*Math.PI/180;
+        const cos=Math.cos(angle), sin=Math.sin(angle);
+        const compact=state.view.width<520;
+        const barrelLength=compact?24:34;
+        const breechX=muzzleX-cos*barrelLength;
+        const breechY=muzzleY+sin*barrelLength;
+        const platformY=Math.min(ground+30,Math.max(muzzleY+20,breechY+16));
+        const platformLeft=Math.max(7,breechX-(compact?20:28));
+        const platformRight=muzzleX+(compact?8:12);
+
+        group.appendChild(svgNode('line',{x1:platformLeft,y1:platformY,x2:platformRight,y2:platformY,class:'launcher-ramp'}));
+        if(platformY<ground-4){
+          group.appendChild(svgNode('line',{x1:platformLeft+8,y1:platformY,x2:platformLeft+8,y2:ground,class:'launcher-support'}));
+          group.appendChild(svgNode('line',{x1:platformRight-7,y1:platformY,x2:platformRight-7,y2:ground,class:'launcher-support'}));
+        }
+
+        group.appendChild(svgNode('ellipse',{
+          cx:breechX-2,cy:breechY+4,rx:compact?10:14,ry:compact?7:9,
+          transform:`rotate(${-trial.angle} ${breechX-2} ${breechY+4})`,class:'cannon-body'
+        }));
+        group.appendChild(svgNode('line',{x1:breechX,y1:breechY,x2:muzzleX,y2:muzzleY,class:'cannon-barrel'}));
+        const wheelY=Math.min(platformY,breechY+15);
+        group.appendChild(svgNode('circle',{cx:breechX-3,cy:wheelY,r:compact?7:9,class:'cannon-wheel'}));
+        group.appendChild(svgNode('circle',{cx:breechX-3,cy:wheelY,r:compact?2:3,class:'cannon-hub'}));
+
+        const vectorLength=(compact?34:46)+(trial.speed-10)/(35-10)*(compact?28:42);
+        const endX=muzzleX+cos*vectorLength;
+        const endY=muzzleY-sin*vectorLength;
+        group.appendChild(svgNode('line',{x1:muzzleX,y1:muzzleY,x2:endX,y2:endY,class:'launch-vector'}));
+        const labelX=muzzleX+cos*vectorLength*.62-sin*12;
+        const labelY=muzzleY-sin*vectorLength*.62-cos*12;
+        group.appendChild(svgNode('text',{x:labelX,y:labelY,'text-anchor':'middle',class:'launch-vector-label'},`v₀ ${fmt(trial.speed,0)} m/s`));
+
+        const arcRadius=compact?18:23;
+        const arcEndX=muzzleX+Math.cos(angle)*arcRadius;
+        const arcEndY=muzzleY-Math.sin(angle)*arcRadius;
+        group.appendChild(svgNode('path',{d:`M${muzzleX+arcRadius},${muzzleY} A${arcRadius},${arcRadius} 0 0 0 ${arcEndX},${arcEndY}`,class:'launch-angle'}));
+        group.appendChild(svgNode('text',{
+          x:muzzleX+Math.cos(angle/2)*(arcRadius+9),
+          y:muzzleY-Math.sin(angle/2)*(arcRadius+9)+4,
+          class:'launch-angle-label'
+        },'α'));
+      }
+
+      function drawVectors(group, trial, t) {
+        const point=pointAtTime(trial,t);
+        const px = sx(point.x), py = sy(Math.max(0,point.y));
+        const scale = Math.min(5.2, (state.view.width - state.view.left - state.view.right) / (state.view.xMax * 4.1));
+        const vxLen = Math.max(18, point.vx * scale);
+        const vyLen = Math.max(-100, Math.min(100, -point.vy * scale));
+        group.appendChild(svgNode('line', { x1:px, y1:py, x2:px+vxLen, y2:py, class:'velocity-vx' }));
+        group.appendChild(svgNode('text', { x:px+vxLen/2, y:py-8, 'text-anchor':'middle', class:'vector-label vx-label' }, 'vₓ'));
+        if (Math.abs(point.vy) > .35) {
+          group.appendChild(svgNode('line', { x1:px, y1:py, x2:px, y2:py+vyLen, class:'velocity-vy' }));
+          group.appendChild(svgNode('text', { x:px+9, y:py+vyLen/2+4, class:'vector-label vy-label' }, 'vᵧ'));
+        }
+        group.appendChild(svgNode('circle', { cx:px, cy:py, r:8, class:'projectile' }));
+      }
+
+      function renderScene(fraction = null) {
+        computeView();
+        svg.replaceChildren();
+        const defs = svgNode('defs');
+        const markerBlue = svgNode('marker', { id:'arrowBlue', markerWidth:8, markerHeight:8, refX:6, refY:3, orient:'auto', markerUnits:'strokeWidth' });
+        markerBlue.appendChild(svgNode('path', { d:'M0,0 L0,6 L7,3 z', fill:'var(--blue)' }));
+        const markerOrange = svgNode('marker', { id:'arrowOrange', markerWidth:8, markerHeight:8, refX:6, refY:3, orient:'auto', markerUnits:'strokeWidth' });
+        markerOrange.appendChild(svgNode('path', { d:'M0,0 L0,6 L7,3 z', fill:'var(--orange)' }));
+        defs.append(markerBlue, markerOrange);
+        svg.appendChild(defs);
+        const title = svgNode('title', { id:'trajectoryTitle' }, 'Graf trajektorie vrhu šikmého');
+        const desc = svgNode('desc', { id:'trajectoryDesc' }, `Dělo na odpalovací rampě míří pod úhlem ${state.angle} stupňů. Vektor počáteční rychlosti má velikost ${state.speed} metrů za sekundu. Odhad dopadu je ${fmt(state.prediction,1)} metru.`);
+        svg.append(title, desc);
+
+        const axes = svgNode('g'); drawAxes(axes); svg.appendChild(axes);
+        const oldGroup = svgNode('g', { 'aria-hidden':'true' });
+        state.history.forEach((trial, index) => {
+          const isActiveStored = state.activeTrial && trial.id === state.activeTrial.id;
+          if (!isActiveStored) oldGroup.appendChild(svgNode('path', { d:pathFor(trial), class:'trail-old' }));
+        });
+        svg.appendChild(oldGroup);
+        const pred = svgNode('g', { 'aria-hidden':'true' }); drawPrediction(pred); svg.appendChild(pred);
+
+        const trial = state.activeTrial;
+        const launchLevel=trial || physics();
+        const levelGroup=svgNode('g',{'aria-hidden':'true'});
+        drawStartHeight(levelGroup,launchLevel);
+        drawLauncher(levelGroup,launchLevel);
+        svg.appendChild(levelGroup);
+        if (trial) {
+          const currentGroup = svgNode('g', { 'aria-hidden':'true' });
+          const frac = fraction === null ? (trial.complete ? 1 : 0) : Math.max(0, Math.min(1, fraction));
+          currentGroup.appendChild(svgNode('path', { d:pathFor(trial, frac), class:'trail-current' }));
+          const t = trial.flight * frac;
+          drawVectors(currentGroup, trial, t);
+          if (frac >= .999) currentGroup.appendChild(svgNode('circle', { cx:sx(trial.range), cy:sy(0), r:13, class:'landing-ring' }));
+          svg.appendChild(currentGroup);
+        } else {
+          const preview = physics();
+          const previewGroup = svgNode('g', { opacity:'.36', 'aria-hidden':'true' });
+          if(state.currentScreen===2) drawVectors(previewGroup, preview, 0);
+          else previewGroup.appendChild(svgNode('circle',{cx:sx(0),cy:sy(preview.initialHeight),r:8,class:'projectile'}));
+          svg.appendChild(previewGroup);
+        }
+      }
+
+      function updateReadouts(settingsChanged = false) {
+        state.angle = Number(els.angle.value);
+        state.speed = Number(els.speed.value);
+        state.initialHeight = Number(els.height.value);
+        state.drag = Number(els.drag.value);
+        state.prediction = Number(els.prediction.value);
+        if (settingsChanged && state.activeTrial && state.activeTrial.complete) state.activeTrial = null;
+        const p = physics();
+        els.angleValue.textContent = `${state.angle}°`;
+        els.speedValue.textContent = `${state.speed} m/s`;
+        els.heightValue.textContent = `${state.initialHeight} m`;
+        const dragName=state.drag===0?'vypnutý':state.drag<=.01?'slabý':state.drag<=.025?'střední':'silný';
+        els.dragValue.textContent = dragName;
+        els.dragHint.textContent = `Kvadratický model, k = ${fmt(state.drag,3)} m⁻¹.`;
+        els.predictionValue.textContent = `${fmt(state.prediction,1)} m`;
+        els.complement.textContent = `${90-state.angle}°`;
+        els.pairBtn.textContent = `↔ Nastavit ${90-state.angle}°`;
+        const ideal=state.drag===0&&state.initialHeight===0;
+        els.modelStatus.classList.toggle('extended',!ideal);
+        els.modelStatus.textContent=ideal
+          ? 'Ideální režim: přesně platí dvojice α a 90° − α i maximum při 45°.'
+          : 'Rozšířený režim: sleduj, které závěry ideálního modelu už neplatí přesně.';
+        els.graphAssumptions.textContent=ideal
+          ? 'Bez odporu vzduchu, g = 9,81 m/s², start i dopad ve stejné výšce.'
+          : `g = 9,81 m/s² · h₀ = ${state.initialHeight} m · odpor k = ${fmt(state.drag,3)} m⁻¹.`;
+        els.factorVxLabel.textContent=state.drag===0?'vodorovně za 1 s':'průměrná vₓ';
+        els.equationNote.innerHTML=ideal
+          ? 'Větší úhel znamená menší v<sub>x</sub>, ale delší let. U doplňkových úhlů se tyto dvě změny přesně vyrovnají.'
+          : state.drag>0
+            ? 'Odpor brzdí i vodorovný pohyb: v<sub>x</sub> už není stálá. Dosah proto určuje průměrná v<sub>x</sub> za celý let.'
+            : 'Start nad zemí prodlužuje pád. Doplňkové úhly proto už obecně nemají přesně stejný dosah.';
+        const revealed = state.activeTrial && state.activeTrial.angle === state.angle && state.activeTrial.speed === state.speed && state.activeTrial.initialHeight===state.initialHeight && state.activeTrial.drag===state.drag;
+        els.factorVx.textContent = revealed ? `${fmt(p.avgVx)} m/s` : '—';
+        els.factorTime.textContent = revealed ? `${fmt(p.flight)} s` : '—';
+        els.factorRange.textContent = revealed ? `${fmt(p.range)} m` : '—';
+        if (!state.activeTrial || state.activeTrial.complete) {
+          els.timeNow.textContent = '0,00 s';
+          els.vxNow.textContent = `${fmt(p.vx0)} m/s`;
+          els.vyNow.textContent = `${fmt(p.vy0)} m/s`;
+          els.vxState.textContent = state.drag===0?'stálá':'bude klesat';
+          els.vyState.textContent = 'klesá';
+          els.flightMessage.textContent = state.drag===0?'Vodorovná složka se po celý let nezmění.':'Odpor vzduchu bude zmenšovat obě složky rychlosti.';
+        }
+        if (!state.activeTrial || state.activeTrial.complete) renderScene();
+      }
+
+      function setControlsDisabled(disabled) {
+        [els.angle, els.speed, els.height, els.drag, els.prediction, els.pairBtn, els.clearBtn].forEach(el => el.disabled = disabled);
+        els.launchBtn.disabled = disabled;
+        els.pauseBtn.disabled = !disabled;
+      }
+
+      function launch() {
+        if (state.animationId) cancelAnimationFrame(state.animationId);
+        const trial = { ...physics(), prediction: state.prediction, id: Date.now() + Math.random(), complete: false };
+        state.activeTrial = trial;
+        if(state.currentScreen===1)showScreen(2);
+        els.factorVx.textContent = `${fmt(trial.avgVx)} m/s`;
+        els.factorTime.textContent = `${fmt(trial.flight)} s`;
+        els.factorRange.textContent = `${fmt(trial.range)} m`;
+        state.paused = false;
+        state.elapsedAtPause = 0;
+        els.pauseBtn.textContent = 'Ⅱ';
+        els.pauseBtn.setAttribute('aria-label', 'Pozastavit animaci');
+        setControlsDisabled(true);
+        els.stageTip.textContent = trial.drag===0
+          ? 'Modrá šipka vₓ si drží stejnou délku. Oranžová vᵧ se zkracuje, obrátí a roste dolů.'
+          : 'Odpor vzduchu zkracuje modrou vₓ i oranžovou vᵧ. Porovnej dráhu s pokusem bez odporu.';
+        els.flightMessage.textContent = trial.drag===0
+          ? 'Sleduj: vₓ je stálá, vᵧ se každou sekundu zmenší o 9,81 m/s.'
+          : 'Sleduj: odpor vzduchu brzdí pohyb proti okamžitému směru rychlosti.';
+        const duration = Math.max(2800, Math.min(5200, 2300 + trial.flight * 550));
+        state.animationStart = performance.now();
+
+        function frame(now) {
+          if (state.paused) return;
+          const visualFraction = Math.min(1, (now - state.animationStart + state.elapsedAtPause) / duration);
+          const eased = visualFraction < 1 ? visualFraction : 1;
+          const t = trial.flight * eased;
+          updateLive(trial, t);
+          renderScene(eased);
+          if (visualFraction < 1) state.animationId = requestAnimationFrame(frame);
+          else finishTrial(trial);
+        }
+        state.animationId = requestAnimationFrame(frame);
+      }
+
+      function updateLive(trial, t) {
+        const point=pointAtTime(trial,t);
+        const vy=point.vy;
+        els.timeNow.textContent = `${fmt(t)} s`;
+        els.vxNow.textContent = `${fmt(point.vx)} m/s`;
+        els.vyNow.textContent = `${vy < 0 ? '−' : ''}${fmt(Math.abs(vy))} m/s`;
+        els.vxState.textContent = trial.drag===0?'stálá':'klesá';
+        if (Math.abs(vy) < .45) {
+          els.vyState.textContent = '≈ 0 ve vrcholu';
+          els.flightMessage.textContent = trial.drag===0
+            ? 'Vrchol: vᵧ je právě nulová, ale vₓ zůstává stejná — těleso letí dál.'
+            : 'Vrchol: vᵧ je přibližně nulová, vₓ však odpor dál zmenšuje.';
+        } else if (vy > 0) {
+          els.vyState.textContent = 'vzhůru, klesá';
+        } else {
+          els.vyState.textContent = 'dolů, roste';
+        }
+      }
+
+      function finishTrial(trial) {
+        trial.complete = true;
+        state.animationId = null;
+        state.history.push(trial);
+        if (state.history.length > MAX_HISTORY) state.history.shift();
+        setControlsDisabled(false);
+        els.pauseBtn.disabled = true;
+        updateLive(trial, trial.flight);
+        els.flightMessage.textContent = `Dopad: ${fmt(trial.range)} m. Odhad se lišil o ${fmt(Math.abs(trial.range-trial.prediction))} m.`;
+        els.stageTip.textContent = 'Předchozí dráhy zůstávají. Teď změň jen úhel a porovnávej.';
+        renderHistory();
+        updateMissions();
+        renderScene(1);
+      }
+
+      function togglePause() {
+        if (!state.activeTrial || state.activeTrial.complete) return;
+        if (!state.paused) {
+          state.paused = true;
+          cancelAnimationFrame(state.animationId);
+          state.animationId = null;
+          state.elapsedAtPause += performance.now() - state.animationStart;
+          els.pauseBtn.textContent = '▶';
+          els.pauseBtn.setAttribute('aria-label', 'Pokračovat v animaci');
+          els.flightMessage.textContent = 'Pozastaveno: porovnej délku modré a oranžové šipky.';
+        } else {
+          state.paused = false;
+          els.pauseBtn.textContent = 'Ⅱ';
+          els.pauseBtn.setAttribute('aria-label', 'Pozastavit animaci');
+          const trial = state.activeTrial;
+          const duration = Math.max(2800, Math.min(5200, 2300 + trial.flight * 550));
+          state.animationStart = performance.now();
+          function frame(now) {
+            if (state.paused) return;
+            const fraction = Math.min(1, (now-state.animationStart+state.elapsedAtPause)/duration);
+            const t = trial.flight*fraction;
+            updateLive(trial,t); renderScene(fraction);
+            if (fraction < 1) state.animationId=requestAnimationFrame(frame); else finishTrial(trial);
+          }
+          state.animationId=requestAnimationFrame(frame);
+        }
+      }
+
+      function renderHistory() {
+        if (!state.history.length) {
+          els.historyBody.innerHTML = '<tr><td colspan="10" class="empty-cell">Zatím žádná data. Nastav odhad a spusť první vrh.</td></tr>';
+          els.trialCount.textContent = '0 pokusů';
+          return;
+        }
+        const rows = [...state.history].reverse().map((t,i) => {
+          const number = state.history.length-i;
+          return `<tr class="${i===0?'latest':''}"><td>${number}</td><td>${t.angle}°</td><td>${fmt(t.speed,0)} m/s</td><td>${fmt(t.initialHeight,0)} m</td><td>${t.drag===0?'bez':fmt(t.drag,3)}</td><td>${fmt(t.vx0)} m/s</td><td>${fmt(t.vy0)} m/s</td><td>${fmt(t.flight)} s</td><td><strong>${fmt(t.range)} m</strong></td><td>${fmt(Math.abs(t.range-t.prediction))} m</td></tr>`;
+        }).join('');
+        els.historyBody.innerHTML = rows;
+        els.trialCount.textContent = pluralTrials(state.history.length);
+      }
+
+      function findPair() {
+        for (let i=0; i<state.history.length; i++) {
+          for (let j=i+1; j<state.history.length; j++) {
+            const a=state.history[i], b=state.history[j];
+            if (a.speed===b.speed && a.initialHeight===b.initialHeight && a.drag===b.drag && a.angle+b.angle===90) return [a,b];
+          }
+        }
+        return null;
+      }
+
+      function findMaxEvidence() {
+        const groups = new Map();
+        state.history.forEach(t => {
+          const key=`${t.speed}|${t.initialHeight}|${t.drag}`;
+          if (!groups.has(key)) groups.set(key,{angles:new Set(),speed:t.speed,initialHeight:t.initialHeight,drag:t.drag});
+          groups.get(key).angles.add(t.angle);
+        });
+        return [...groups.values()].find(g => g.angles.has(30) && g.angles.has(45) && g.angles.has(60)) || null;
+      }
+
+      function setMission(id, done) {
+        const el=$(id);
+        el.classList.toggle('done',done);
+        el.querySelector('.check-icon').textContent=done?'✓':id==='missionPredict'?'1':id==='missionPair'?'2':'3';
+      }
+
+      function updateMissions() {
+        const predicted=state.history.length>0;
+        const pairData=findPair();
+        const pair=!!pairData;
+        const maxData=findMaxEvidence();
+        const max=!!maxData;
+        setMission('missionPredict',predicted);
+        setMission('missionPair',pair);
+        setMission('missionMax',max);
+        const steps=document.querySelectorAll('.lesson-step');
+        steps.forEach((el,i)=>{
+          const done=[predicted,predicted,pair,max,pair&&max][i];
+          el.classList.toggle('done',done);
+          el.classList.toggle('active',Number(el.dataset.screen)===state.currentScreen);
+          el.querySelector('.step-number').textContent=done?'✓':String(i+1);
+        });
+        els.conclusion.classList.toggle('show',pair&&max);
+        if (pair) {
+          const [a,b]=pairData;
+          const difference=Math.abs(a.range-b.range);
+          showToast(difference<.03
+            ? `${a.angle}° a ${b.angle}°: stejný dosah ${fmt(a.range)} m.`
+            : `${a.angle}° a ${b.angle}°: dosahy ${fmt(a.range)} m a ${fmt(b.range)} m. Rozdíl je ${fmt(difference)} m.`);
+        }
+        if (pair&&max) {
+          const ideal=pairData[0].drag===0&&pairData[0].initialHeight===0&&maxData.drag===0&&maxData.initialHeight===0;
+          els.conclusionText.textContent=ideal
+            ? 'Doplňkové úhly mají stejný dosah. Největší dosah na vodorovné rovině má 45°.'
+            : 'Počáteční výška nebo odpor vzduchu narušují jednoduchou symetrii. Nejlepší úhel už nemusí být přesně 45°.';
+          showToast(ideal
+            ? 'Mise splněna: maximum je při 45°. Zapiš vysvětlení do sešitu.'
+            : 'Mise splněna: rozšířený model se od ideálního liší. Pro přesné maximum zkoušej menší kroky úhlu.');
+        }
+      }
+
+      let toastTimer;
+      function showToast(text) {
+        els.toast.textContent=text;
+        els.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer=setTimeout(()=>els.toast.classList.remove('show'),4200);
+      }
+
+      function clearPaths() {
+        state.history=[];
+        state.activeTrial=null;
+        renderHistory(); updateMissions(); updateReadouts();
+        els.stageTip.textContent='Než spustíš vrh, umísti oranžovou vlajku tam, kde čekáš dopad.';
+        showToast('Dráhy a tabulka byly vymazány.');
+      }
+
+      function setPredictionFromPointer(event) {
+        const rect=svg.getBoundingClientRect();
+        const px=(event.clientX-rect.left)*(state.view.width/rect.width);
+        const x=(px-state.view.left)/(state.view.width-state.view.left-state.view.right)*state.view.xMax;
+        state.prediction=Math.max(0,Math.min(180,Math.round(x*2)/2));
+        els.prediction.value=state.prediction;
+        els.predictionValue.textContent=`${fmt(state.prediction,1)} m`;
+        renderScene(state.activeTrial&&state.activeTrial.complete?1:null);
+      }
+
+      els.angle.addEventListener('input',()=>updateReadouts(true));
+      els.speed.addEventListener('input',()=>updateReadouts(true));
+      els.height.addEventListener('input',()=>updateReadouts(true));
+      els.drag.addEventListener('input',()=>updateReadouts(true));
+      els.prediction.addEventListener('input',()=>updateReadouts(false));
+      els.launchBtn.addEventListener('click',launch);
+      els.pauseBtn.addEventListener('click',togglePause);
+      els.clearBtn.addEventListener('click',clearPaths);
+      els.pairBtn.addEventListener('click',()=>{ els.angle.value=90-state.angle; updateReadouts(true); showToast('Rychlost, výška i odpor zůstaly stejné. Teď odhadni dopad doplňkového úhlu.'); });
+      document.querySelectorAll('.lesson-step').forEach(button=>button.addEventListener('click',()=>showScreen(Number(button.dataset.screen))));
+      els.prevScreenBtn.addEventListener('click',()=>showScreen(state.currentScreen-1));
+      els.nextScreenBtn.addEventListener('click',()=>showScreen(state.currentScreen===5?1:state.currentScreen+1));
+      svg.addEventListener('pointerdown',e=>{ if(els.prediction.disabled)return; state.dragPrediction=true; svg.setPointerCapture(e.pointerId); setPredictionFromPointer(e); });
+      svg.addEventListener('pointermove',e=>{ if(state.dragPrediction)setPredictionFromPointer(e); });
+      svg.addEventListener('pointerup',e=>{ state.dragPrediction=false; if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId); });
+      svg.addEventListener('keydown',e=>{
+        if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+          e.preventDefault(); state.prediction=Math.max(0,Math.min(180,state.prediction+(e.key==='ArrowRight'?.5:-.5)));
+          els.prediction.value=state.prediction; updateReadouts();
+        }
+      });
+
+      const resizeObserver=new ResizeObserver(()=>renderScene(state.activeTrial&&state.activeTrial.complete?1:null));
+      resizeObserver.observe(svg);
+      updateReadouts();
+      renderHistory();
+      showScreen(1);
+    })();
+  </script>
+</body>
+</html>

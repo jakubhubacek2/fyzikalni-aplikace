@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="Offline adaptivní trenažér barevného kódu čtyřproužkových a pětiproužkových rezistorů.">
+  <title>Rezistor bez tabulky</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14213d;
+      --muted: #607086;
+      --paper: #eef3f9;
+      --card: #ffffff;
+      --accent: #5b5bd6;
+      --accent-dark: #4141aa;
+      --green: #087f5b;
+      --green-soft: #e9fbf4;
+      --red-soft: #fff0f3;
+      --line: #d9e2ec;
+      --bench: #101827;
+      --focus: #0ea5e9;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--paper); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 4%, rgba(91, 91, 214, .17), transparent 30rem),
+        radial-gradient(circle at 92% 88%, rgba(14, 165, 233, .13), transparent 34rem),
+        linear-gradient(145deg, #f7f9fc, var(--paper) 52%, #e7eef8);
+    }
+    button, input, select { font: inherit; }
+    button { touch-action: manipulation; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 4px solid color-mix(in srgb, var(--focus) 38%, transparent);
+      outline-offset: 3px;
+    }
+    [hidden] { display: none !important; }
+
+    .app {
+      width: min(1160px, calc(100% - 28px));
+      margin: 22px auto;
+      min-height: calc(100vh - 44px);
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: 0 28px 80px rgba(35, 48, 76, .15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .88);
+      backdrop-filter: blur(14px);
+    }
+    .brand {
+      font-weight: 950;
+      letter-spacing: -.035em;
+      font-size: clamp(21px, 2.6vw, 30px);
+      white-space: nowrap;
+    }
+    .top-status { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+    .status-pill {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: #eef0ff;
+      color: #4141aa;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .status-pill.time-up { background: #fff3cd; color: #7a4a00; }
+    .icon-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+    .quiet-button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: transparent;
+      color: var(--ink);
+      padding: 8px 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .quiet-button:hover { background: #f2f5fa; }
+
+    .screen { flex: 1; animation: enter .28s ease-out; }
+    @keyframes enter { from { opacity: 0; transform: translateY(7px); } }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(390px, .98fr);
+      gap: clamp(28px, 5vw, 64px);
+      padding: clamp(30px, 5vw, 68px);
+      align-items: center;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-weight: 950;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 9ch;
+      margin-bottom: 22px;
+      font-size: clamp(43px, 6vw, 76px);
+      line-height: .96;
+      letter-spacing: -.058em;
+    }
+    h2 { font-size: clamp(31px, 4.2vw, 50px); line-height: 1.02; letter-spacing: -.045em; margin-bottom: 14px; }
+    h3 { font-size: 20px; letter-spacing: -.02em; margin-bottom: 8px; }
+    .lead-copy { max-width: 58ch; color: var(--muted); font-size: 18px; line-height: 1.62; }
+    .primary {
+      min-height: 52px;
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 22px;
+      background: linear-gradient(135deg, #6d6de3, var(--accent));
+      color: white;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(91, 91, 214, .28);
+    }
+    .primary:hover { background: linear-gradient(135deg, #5555c6, var(--accent-dark)); }
+    .primary:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+    .secondary {
+      min-height: 50px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px 20px;
+      background: white;
+      color: var(--ink);
+      font-weight: 850;
+      cursor: pointer;
+    }
+    .secondary:hover { background: #f3f6fb; }
+    .link-button {
+      min-height: 46px;
+      border: 0;
+      padding: 8px 12px;
+      background: transparent;
+      color: #4949b8;
+      font-weight: 850;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+    .button-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+    .bench {
+      min-height: 330px;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(91,91,214,.2), transparent 48%),
+        linear-gradient(rgba(139,161,199,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,161,199,.08) 1px, transparent 1px),
+        var(--bench);
+      background-size: 28px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .bench::after {
+      content: "";
+      position: absolute;
+      inset: auto 10% 12% 10%;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.34);
+      filter: blur(13px);
+    }
+    .resistor-wrap { width: min(100%, 560px); padding: 20px 0 36px; position: relative; z-index: 1; perspective: 900px; }
+    .resistor {
+      --rot-x: -7deg;
+      --rot-y: -2deg;
+      --lift: 0px;
+      height: 116px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+      transform: rotateX(var(--rot-x)) rotateY(var(--rot-y)) translateY(var(--lift));
+      transition: transform .45s cubic-bezier(.2,.8,.2,1);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      will-change: transform;
+    }
+    .resistor.is-dragging {
+      --lift: -2px;
+      cursor: grabbing;
+      transition: none;
+    }
+    .resistor:focus-visible {
+      outline: 4px solid rgba(14,165,233,.5);
+      outline-offset: 8px;
+      border-radius: 18px;
+    }
+    .resistor::after {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      width: 70%;
+      height: 18px;
+      top: calc(50% + 31px);
+      border-radius: 50%;
+      background: rgba(0,0,0,.46);
+      filter: blur(10px);
+      transform: translateZ(-22px);
+      pointer-events: none;
+    }
+    @media (hover: hover) {
+      .bench:hover .resistor:not(.is-dragging) { --lift: -2px; }
+    }
+    .lead {
+      position: absolute;
+      z-index: 1;
+      width: 100%;
+      height: 6px;
+      border-radius: 99px;
+      background: linear-gradient(#f8fafc 0 15%, #9aa6b2 40% 68%, #dce3e8 100%);
+      box-shadow: 0 2px 4px rgba(0,0,0,.38), inset 0 -1px rgba(51,65,85,.38);
+      transform: translateZ(-5px);
+    }
+    .lead::before,
+    .lead::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 24px;
+      height: 11px;
+      border-radius: 8px;
+      background: linear-gradient(#eef2f4, #7b8790 48%, #cbd3d8);
+      box-shadow: 0 2px 4px rgba(0,0,0,.28);
+      transform: translateY(-50%);
+    }
+    .lead::before { left: 11.5%; }
+    .lead::after { right: 11.5%; }
+    .resistor-body {
+      z-index: 2;
+      position: relative;
+      width: 76%;
+      height: 86px;
+      border: 2px solid rgba(77, 51, 25, .42);
+      border-radius: 18px;
+      clip-path: polygon(0 50%, 7% 28%, 14% 15%, 24% 9%, 76% 9%, 86% 15%, 93% 28%, 100% 50%, 93% 72%, 86% 85%, 76% 91%, 24% 91%, 14% 85%, 7% 72%);
+      background:
+        radial-gradient(ellipse at 48% 4%, rgba(255,255,255,.68), transparent 38%),
+        linear-gradient(to bottom, #8d6034 0%, #e7c48d 16%, #f1d7a7 33%, #d5aa6b 61%, #a66f38 84%, #72451f 100%);
+      display: flex;
+      justify-content: center;
+      gap: var(--band-gap, 6%);
+      padding: 0 var(--band-pad, 16%);
+      filter: drop-shadow(0 10px 8px rgba(0,0,0,.35));
+      transform: translateZ(12px);
+      transform-style: preserve-3d;
+      overflow: hidden;
+    }
+    .resistor-body::before,
+    .resistor-body::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .resistor-body::before {
+      background: linear-gradient(90deg, rgba(55,29,8,.4), transparent 18%, transparent 82%, rgba(55,29,8,.4));
+    }
+    .resistor-body::after {
+      background: linear-gradient(to bottom, rgba(255,255,255,.48), transparent 25%, transparent 59%, rgba(48,24,6,.34));
+    }
+    .resistor-body.five { --band-gap: 4.5%; --band-pad: 14%; }
+    .band {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 8.5%;
+      min-width: 14px;
+      height: 100%;
+      border-inline: 1px solid rgba(0,0,0,.18);
+      box-shadow: inset 4px 0 rgba(255,255,255,.25), inset -4px 0 rgba(0,0,0,.16);
+      filter: saturate(1.08) contrast(1.03);
+    }
+    .band:last-child { margin-left: 5%; }
+    .band.white-band { border-color: #86837d; }
+    .band.metal { background-image: linear-gradient(90deg, rgba(255,255,255,.42), transparent 38%, rgba(91,70,15,.2)); }
+    .resistor-caption {
+      margin-top: 8px;
+      text-align: center;
+      color: #e7edf8;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .tip-ribbon {
+      position: absolute;
+      left: 20px; right: 20px; bottom: 17px;
+      color: #aebbd0;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .route-map { display: grid; gap: 10px; margin: 28px 0; }
+    .route-item { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; font-weight: 750; color: #53657a; }
+    .route-num { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: #e8eaff; color: #4949b8; font-weight: 950; }
+    .privacy-note { margin-top: 18px; color: #708095; font-size: 14px; }
+
+    .lesson { padding: clamp(28px, 5vw, 58px); }
+    .lesson-head { max-width: 730px; }
+    .stage-kicker { display: flex; align-items: center; gap: 10px; color: var(--accent); font-weight: 900; margin-bottom: 12px; }
+    .stage-kicker span:first-child { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--red-soft); }
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin: 28px 0;
+    }
+    .memory-card {
+      min-height: 154px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: #ffffff;
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(35,48,76,.07);
+    }
+    .swatch { height: 48px; border-radius: 12px; border: 1px solid rgba(0,0,0,.2); box-shadow: inset 0 2px rgba(255,255,255,.28); }
+    .memory-card strong { font-size: 20px; }
+    .memory-card .mapping { color: var(--muted); font-weight: 750; }
+    .rule-card {
+      margin: 26px 0;
+      padding: 22px;
+      border-radius: 18px;
+      background: #f2f5fb;
+      border: 1px solid #dce4ef;
+    }
+    .rule-flow { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; margin-top: 12px; }
+    .rule-chip { padding: 9px 12px; border-radius: 11px; background: white; border: 1px solid #d8e1ec; font-weight: 850; }
+    .rule-arrow { color: var(--muted); font-weight: 900; }
+    .lesson-note { color: var(--muted); font-size: 15px; max-width: 66ch; }
+
+    .practice { padding: clamp(20px, 3.5vw, 40px); }
+    .practice-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); gap: clamp(22px, 4vw, 44px); align-items: start; }
+    .practice-meta { margin-bottom: 16px; }
+    .meta-line { display: flex; justify-content: space-between; gap: 14px; align-items: end; }
+    .meta-line h2 { margin: 0; font-size: clamp(26px, 3.3vw, 38px); }
+    .attempt-label { color: var(--muted); font-weight: 800; white-space: nowrap; }
+    .mastery-row { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
+    .mastery-dot { width: 24px; height: 9px; border-radius: 99px; background: #dce4ee; }
+    .mastery-dot.good { background: #10a277; }
+    .mastery-dot.bad { background: #ee6b7a; }
+    .mastery-caption { margin-left: 6px; color: var(--muted); font-size: 13px; font-weight: 750; }
+
+    .answer-card { border: 1px solid var(--line); border-radius: 22px; padding: 24px; background: white; box-shadow: 0 14px 36px rgba(35,48,76,.09); }
+    .question-label { color: var(--muted); font-size: 14px; font-weight: 850; text-transform: uppercase; letter-spacing: .08em; }
+    .value-row { display: grid; grid-template-columns: minmax(0, 1fr) 116px; gap: 10px; margin: 9px 0 22px; }
+    .value-input, .unit-select {
+      min-height: 56px;
+      border: 2px solid #cbd6e2;
+      border-radius: 13px;
+      background: #fbfdff;
+      color: var(--ink);
+      padding: 10px 14px;
+      font-weight: 850;
+    }
+    .value-input { font-size: 24px; min-width: 0; }
+    .unit-select { font-size: 18px; }
+    .tol-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 9px 0 18px; }
+    .tol-option { position: relative; }
+    .tol-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .tol-option label {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 2px solid #d5dfe9;
+      border-radius: 13px;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor: pointer;
+      background: #fbfdff;
+    }
+    .tol-option input:checked + label { border-color: var(--accent); box-shadow: 0 0 0 3px #e5e7ff; }
+    .tol-option input:focus-visible + label { outline: 4px solid color-mix(in srgb, var(--focus) 38%, transparent); outline-offset: 2px; }
+    .tol-swatch { width: 14px; align-self: stretch; min-height: 28px; border-radius: 5px; border: 1px solid rgba(0,0,0,.2); }
+    .validation {
+      min-height: 22px;
+      margin: -7px 0 10px;
+      color: #b4234d;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .feedback { margin-top: 18px; padding: 18px; border-radius: 16px; border: 1px solid transparent; }
+    .feedback.correct { background: var(--green-soft); border-color: #b8ead8; }
+    .feedback.wrong { background: var(--red-soft); border-color: #ffc9d2; }
+    .feedback-title { font-size: 20px; font-weight: 950; margin-bottom: 5px; }
+    .feedback p { color: #526276; line-height: 1.45; margin-bottom: 12px; }
+    .breakdown { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px; }
+    .decode-chip {
+      display: grid;
+      grid-template-columns: 16px auto;
+      align-items: stretch;
+      gap: 8px;
+      min-height: 40px;
+      padding: 7px 10px 7px 7px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(0,0,0,.12);
+      font-weight: 900;
+    }
+    .decode-color { border-radius: 5px; border: 1px solid rgba(0,0,0,.2); min-height: 25px; }
+    .answer-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+    .stage-done, .summary { padding: clamp(32px, 6vw, 74px); }
+    .celebrate { width: 62px; height: 62px; border-radius: 18px; display: grid; place-items: center; background: var(--green-soft); color: var(--green); font-size: 30px; font-weight: 950; margin-bottom: 24px; }
+    .stage-done .lead-copy { margin-bottom: 26px; }
+    .mini-stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 30px; }
+    .mini-stat { min-width: 140px; padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: white; }
+    .mini-stat strong { display: block; font-size: 28px; letter-spacing: -.03em; }
+    .mini-stat span { color: var(--muted); font-weight: 750; font-size: 14px; }
+
+    .summary-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 34px; margin-top: 28px; }
+    .score-panel { padding: 24px; border-radius: 20px; background: var(--bench); color: white; }
+    .score-big { font-size: clamp(62px, 9vw, 100px); font-weight: 950; line-height: 1; letter-spacing: -.065em; }
+    .score-panel p { color: #c7d4cf; }
+    .score-panel .mini-stat { color: var(--ink); }
+    .error-list { display: grid; gap: 10px; }
+    .error-row { display: grid; grid-template-columns: 58px 1fr auto; gap: 13px; align-items: center; padding: 11px; border: 1px solid var(--line); border-radius: 13px; background: white; }
+    .error-swatch { height: 38px; border-radius: 9px; border: 1px solid rgba(0,0,0,.22); }
+    .error-row strong { display: block; }
+    .error-row small { color: var(--muted); }
+    .error-count { font-size: 22px; font-weight: 950; color: var(--accent); }
+    .empty-errors { padding: 20px; border-radius: 16px; background: var(--green-soft); color: var(--green); font-weight: 850; }
+    .report-note { color: var(--muted); font-size: 14px; margin-top: 18px; }
+
+    .screen-reader { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(18, 27, 24, .68);
+      backdrop-filter: blur(4px);
+    }
+    .modal-card {
+      width: min(100%, 480px);
+      padding: 26px;
+      border-radius: 20px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: 0 24px 70px rgba(0,0,0,.3);
+    }
+    .modal-card p { color: var(--muted); line-height: 1.55; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .resistor { transition: none; }
+      .bench:hover .resistor { --lift: 0px; }
+    }
+
+    @media (max-width: 850px) {
+      .intro, .practice-grid, .summary-grid { grid-template-columns: 1fr; }
+      .intro { padding: 34px; }
+      .bench { min-height: 260px; order: -1; }
+      .practice-grid .answer-card { max-width: none; }
+    }
+    @media (max-width: 560px) {
+      .app { width: 100%; min-height: 100vh; margin: 0; border: 0; border-radius: 0; }
+      .topbar { padding: 12px 15px; flex-wrap: wrap; }
+      .top-status { margin-left: 0; width: 100%; }
+      .quiet-button { margin-left: auto; }
+      .intro, .lesson, .practice, .stage-done, .summary { padding: 24px 18px; }
+      .intro { gap: 24px; }
+      .bench { min-height: 220px; padding: 18px; }
+      .resistor { height: 94px; }
+      .resistor-body { height: 72px; }
+      .value-row { grid-template-columns: 1fr 95px; }
+      .answer-card { padding: 18px; }
+      .tol-options { grid-template-columns: 1fr; }
+      .meta-line { align-items: start; flex-direction: column; gap: 4px; }
+      h1 { font-size: 45px; }
+    }
+
+    @media print {
+      @page { margin: 12mm; size: A4 portrait; }
+      body { background: white; color: #111; }
+      .app { width: 100%; min-height: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+      .topbar, .screen:not(#summaryScreen), .summary .button-row, .report-note { display: none !important; }
+      #summaryScreen { display: block !important; padding: 0; animation: none; }
+      .summary-grid { grid-template-columns: .75fr 1.25fr; gap: 18px; }
+      .score-panel { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .error-swatch { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .error-row { break-inside: avoid; }
+      h2 { font-size: 32px; }
+    }
+  </style>
+  <link rel="stylesheet" href="spsei-theme.css">
+</head>
+<body class="resistor-app">
+  <main class="app">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Zpět na rozcestník fyzikálních aplikací">Rezistor bez tabulky</a>
+      <div class="top-status">
+        <div class="status-pill" id="timerPill" title="Doporučená délka práce">
+          <span class="icon-dot"></span><span id="timerText">15:00</span>
+        </div>
+        <button class="quiet-button" id="resetBtn" type="button" hidden>Nový trénink</button>
+      </div>
+    </header>
+
+    <section class="screen intro" id="introScreen">
+      <div>
+        <div class="eyebrow">Adaptivní trenažér · 2. ročník</div>
+        <h1>Barvy, které dávají smysl.</h1>
+        <p class="lead-copy">Začneš čtyřmi nejčastějšími barvami. Další se ukážou teprve, až budeš v předchozích jistý. Nakonec zvládneš i pětiproužkové rezistory.</p>
+        <div class="route-map" aria-label="Průběh tréninku">
+          <div class="route-item"><span class="route-num">1</span><span>Krátce si ukotvíš novou sadu barev.</span></div>
+          <div class="route-item"><span class="route-num">2</span><span>Určíš hodnotu a toleranci z vykresleného rezistoru.</span></div>
+          <div class="route-item"><span class="route-num">3</span><span>Po 4 správných z posledních 5 jdeš dál.</span></div>
+        </div>
+        <button class="primary" id="startBtn" type="button">Začít trénink</button>
+        <p class="privacy-note">Bez účtu a bez odesílání dat. Výsledek zůstává jen v této otevřené stránce.</p>
+      </div>
+      <div class="bench" aria-label="Vykreslený čtyřproužkový rezistor">
+        <div class="resistor-wrap">
+          <div class="resistor" data-rotatable tabindex="0" role="img" aria-label="Interaktivní 3D model čtyřproužkového rezistoru. Kliknutím a tažením jej otočíš." aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home" title="Klikni a táhni pro otočení. Šipkami lze model otočit z klávesnice.">
+            <div class="lead"></div>
+            <div class="resistor-body" id="introResistor">
+              <span class="band" style="background:#171918"></span>
+              <span class="band" style="background:#6d3f22"></span>
+              <span class="band" style="background:#c53b32"></span>
+              <span class="band metal" style="background-color:#c5a33c"></span>
+            </div>
+          </div>
+          <div class="resistor-caption">Čti zleva doprava · klikni a tažením otoč</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen lesson" id="lessonScreen" hidden>
+      <div class="lesson-head">
+        <div class="stage-kicker"><span id="lessonStageNum">1</span><span id="lessonKicker">Nová sada</span></div>
+        <h2 id="lessonTitle"></h2>
+        <p class="lead-copy" id="lessonLead"></p>
+      </div>
+      <div id="lessonContent"></div>
+      <p class="lesson-note">Proužky si můžeš prohlédnout teď. V otázkách už nápovědní tabulku neuvidíš; po chybě se ukáže jen rozklad daného rezistoru.</p>
+      <button class="primary" id="beginStageBtn" type="button">Jdu na příklady</button>
+    </section>
+
+    <section class="screen practice" id="practiceScreen" hidden>
+      <div class="practice-grid">
+        <div>
+          <div class="practice-meta">
+            <div class="meta-line">
+              <h2 id="practiceTitle"></h2>
+              <div class="attempt-label" id="attemptLabel">Příklad 1</div>
+            </div>
+            <div class="mastery-row" id="masteryRow" aria-label="Posledních pět odpovědí"></div>
+          </div>
+          <div class="bench" id="questionBench">
+            <div class="resistor-wrap">
+              <div class="resistor" data-rotatable tabindex="0" role="img" aria-label="Interaktivní 3D model rezistoru k určení. Kliknutím a tažením jej otočíš." aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home" title="Klikni a táhni pro otočení. Šipkami lze model otočit z klávesnice.">
+                <div class="lead"></div>
+                <div class="resistor-body" id="questionResistor"></div>
+              </div>
+              <div class="resistor-caption" id="bandCountCaption"></div>
+            </div>
+            <div class="tip-ribbon">Tolerance je poslední, mírně odsazený proužek vpravo.</div>
+          </div>
+        </div>
+
+        <form class="answer-card" id="answerForm" novalidate>
+          <div class="question-label">Hodnota rezistoru</div>
+          <label class="screen-reader" for="valueInput">Číselná hodnota</label>
+          <div class="value-row">
+            <input class="value-input" id="valueInput" type="text" inputmode="decimal" autocomplete="off" placeholder="např. 4,7">
+            <label class="screen-reader" for="unitSelect">Jednotka</label>
+            <select class="unit-select" id="unitSelect">
+              <option value="1">Ω</option>
+              <option value="1000">kΩ</option>
+              <option value="1000000">MΩ</option>
+            </select>
+          </div>
+          <fieldset style="border:0;padding:0;margin:0">
+            <legend class="question-label">Tolerance</legend>
+            <div class="tol-options" id="toleranceOptions"></div>
+          </fieldset>
+          <div class="validation" id="validationMsg" role="alert"></div>
+          <div class="answer-actions" id="checkActions">
+            <button class="primary" type="submit">Zkontrolovat</button>
+            <button class="link-button" id="dontKnowBtn" type="button">Nevím — ukaž postup</button>
+          </div>
+          <div class="feedback" id="feedbackPanel" role="status" aria-live="polite" hidden>
+            <div class="feedback-title" id="feedbackTitle"></div>
+            <p id="feedbackText"></p>
+            <div class="breakdown" id="breakdown"></div>
+            <button class="primary" id="nextBtn" type="button">Další příklad</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="screen stage-done" id="stageDoneScreen" hidden>
+      <div class="celebrate" aria-hidden="true">✓</div>
+      <div class="eyebrow">Úroveň zvládnuta</div>
+      <h2 id="stageDoneTitle"></h2>
+      <p class="lead-copy" id="stageDoneText"></p>
+      <div class="mini-stats" id="stageMiniStats"></div>
+      <button class="primary" id="continueBtn" type="button">Přidat další barvy</button>
+    </section>
+
+    <section class="screen summary" id="summaryScreen" hidden>
+      <div class="eyebrow">Můj přehled</div>
+      <h2>Co už umím a co ještě procvičit</h2>
+      <p class="lead-copy" id="summaryLead"></p>
+      <div class="summary-grid">
+        <div class="score-panel">
+          <div class="score-big" id="scoreBig">0 %</div>
+          <p id="scoreCopy"></p>
+          <div class="mini-stats" id="summaryStats"></div>
+        </div>
+        <div>
+          <h3>Barvy v chybných odpovědích</h3>
+          <div class="error-list" id="errorList"></div>
+          <p class="report-note">Počet říká, kolikrát byl daný proužek součástí chybně rozluštěné pozice. Přehled neobsahuje jméno ani jiné osobní údaje.</p>
+        </div>
+      </div>
+      <div class="button-row" style="margin-top:28px">
+        <button class="primary" id="printBtn" type="button">Vytisknout přehled</button>
+        <button class="secondary" id="mixedBtn" type="button">Pokračovat v míchaném tréninku</button>
+      </div>
+    </section>
+
+    <div class="modal" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetTitle" hidden>
+      <div class="modal-card">
+        <h3 id="resetTitle">Začít úplně znovu?</h3>
+        <p>Dosavadní průběh této otevřené stránky se smaže. Vytištěný přehled tím ovlivněn nebude.</p>
+        <div class="button-row">
+          <button class="secondary" id="cancelResetBtn" type="button">Pokračovat v tréninku</button>
+          <button class="primary" id="confirmResetBtn" type="button">Ano, začít znovu</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-reader" id="liveRegion" aria-live="polite"></div>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const COLORS = [
+        { key: "black", name: "Černá", digit: 0, hex: "#171918" },
+        { key: "brown", name: "Hnědá", digit: 1, hex: "#6d3f22" },
+        { key: "red", name: "Červená", digit: 2, hex: "#c53b32" },
+        { key: "orange", name: "Oranžová", digit: 3, hex: "#e77b23" },
+        { key: "yellow", name: "Žlutá", digit: 4, hex: "#e1b91f" },
+        { key: "green", name: "Zelená", digit: 5, hex: "#33885e" },
+        { key: "blue", name: "Modrá", digit: 6, hex: "#3066b0" },
+        { key: "violet", name: "Fialová", digit: 7, hex: "#7451a5" },
+        { key: "gray", name: "Šedá", digit: 8, hex: "#777b7e" },
+        { key: "white", name: "Bílá", digit: 9, hex: "#f5f3ea" }
+      ];
+      const METALS = {
+        gold: { key: "gold", name: "Zlatá", hex: "#c5a33c", multiplier: -1, tolerance: 5 },
+        silver: { key: "silver", name: "Stříbrná", hex: "#b9bdba", multiplier: -2, tolerance: 10 }
+      };
+      const TOLERANCES = {
+        brown: { key: "brown", name: "Hnědá", hex: "#6d3f22", tolerance: 1 },
+        red: { key: "red", name: "Červená", hex: "#c53b32", tolerance: 2 },
+        gold: METALS.gold,
+        silver: METALS.silver
+      };
+      const STAGES = [
+        {
+          title: "Čtyřproužkový základ",
+          lead: "První dva proužky jsou číslice, třetí násobí a poslední určuje toleranci. Začni čtyřmi barvami, které tvoří pevnou osu 0–3.",
+          bandCount: 4, digits: [0,1,2,3], multipliers: [0,1,2,3],
+          tolerances: ["gold","silver"], intro: [0,1,2,3], kicker: "První čtyři barvy"
+        },
+        {
+          title: "Přidáváme žlutou a zelenou",
+          lead: "Navazují přímo po oranžové. Starší barvy už máš v paměti, proto teď ukazujeme jen dvě nové.",
+          bandCount: 4, digits: [0,1,2,3,4,5], multipliers: [0,1,2,3,4,5],
+          tolerances: ["gold","silver"], intro: [4,5], kicker: "Dvě nové barvy"
+        },
+        {
+          title: "Přidáváme modrou a fialovou",
+          lead: "Další dvojice doplní číslice 6 a 7. Současně se objeví přesnější tolerance ±1 % a ±2 %.",
+          bandCount: 4, digits: [0,1,2,3,4,5,6,7], multipliers: [0,1,2,3,4,5,6],
+          tolerances: ["brown","red","gold","silver"], intro: [6,7], kicker: "Další dvě barvy",
+          toleranceIntro: ["brown","red"]
+        },
+        {
+          title: "Celá řada 0–9",
+          lead: "Šedá a bílá uzavírají číselnou řadu. Po této úrovni umíš celý čtyřproužkový kód.",
+          bandCount: 4, digits: [0,1,2,3,4,5,6,7,8,9], multipliers: [0,1,2,3,4,5,6],
+          tolerances: ["brown","red","gold","silver"], intro: [8,9], kicker: "Poslední dvě číslice"
+        },
+        {
+          title: "Pětiproužkové rezistory",
+          lead: "Teď čteš tři číslice, potom násobitel a nakonec toleranci. Přibydou také desetinné násobitele zlatá ×0,1 a stříbrná ×0,01.",
+          bandCount: 5, digits: [0,1,2,3,4,5,6,7,8,9], multipliers: [-2,-1,0,1,2,3,4,5,6],
+          tolerances: ["brown","red","gold","silver"], intro: [], kicker: "Tři číslice místo dvou",
+          metalIntro: true
+        }
+      ];
+
+      const el = id => document.getElementById(id);
+      const screens = ["introScreen","lessonScreen","practiceScreen","stageDoneScreen","summaryScreen"];
+      const state = {
+        stageIndex: 0,
+        stageStats: STAGES.map(() => ({ attempts: 0, correct: 0, recent: [] })),
+        totalAttempts: 0,
+        totalCorrect: 0,
+        colorStats: {},
+        question: null,
+        lastKey: "",
+        answered: false,
+        stageMastered: false,
+        startedAt: null,
+        timerId: null,
+        mixed: false,
+        mixedCount: 0
+      };
+
+      function showScreen(id) {
+        screens.forEach(screenId => { el(screenId).hidden = screenId !== id; });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function randomItem(items) {
+        return items[Math.floor(Math.random() * items.length)];
+      }
+
+      function colorForMultiplier(exp) {
+        if (exp === -1) return METALS.gold;
+        if (exp === -2) return METALS.silver;
+        return COLORS[exp];
+      }
+
+      function makeQuestion() {
+        const config = state.mixed
+          ? { ...STAGES[randomItem([0,1,2,3,4])], digits: COLORS.map(c => c.digit), tolerances: ["brown","red","gold","silver"] }
+          : STAGES[state.stageIndex];
+        let question;
+        let tries = 0;
+        do {
+          const sigCount = config.bandCount === 5 ? 3 : 2;
+          const firstChoices = config.digits.filter(n => n !== 0);
+          const digitValues = [randomItem(firstChoices)];
+          for (let i = 1; i < sigCount; i++) digitValues.push(randomItem(config.digits));
+          const multiplier = randomItem(config.multipliers);
+          const toleranceKey = randomItem(config.tolerances);
+          const significant = Number(digitValues.join(""));
+          const value = significant * Math.pow(10, multiplier);
+          const bands = [
+            ...digitValues.map(n => COLORS[n]),
+            colorForMultiplier(multiplier),
+            TOLERANCES[toleranceKey]
+          ];
+          question = { config, sigCount, digitValues, multiplier, toleranceKey, tolerance: TOLERANCES[toleranceKey].tolerance, significant, value, bands };
+          question.key = [config.bandCount, ...digitValues, multiplier, toleranceKey].join("-");
+          tries++;
+        } while (question.key === state.lastKey && tries < 20);
+        state.lastKey = question.key;
+        state.question = question;
+      }
+
+      function bandClass(color) {
+        return "band" + (color.key === "white" ? " white-band" : "") + (color.key === "gold" || color.key === "silver" ? " metal" : "");
+      }
+
+      function renderQuestion() {
+        makeQuestion();
+        const q = state.question;
+        el("questionResistor").className = "resistor-body" + (q.config.bandCount === 5 ? " five" : "");
+        el("questionResistor").innerHTML = q.bands.map((color, index) =>
+          '<span class="' + bandClass(color) + '" style="background-color:' + color.hex + '" data-key="' + color.key + '" data-position="' + index + '"></span>'
+        ).join("");
+        el("bandCountCaption").textContent = (q.config.bandCount === 5 ? "Pětiproužkový rezistor" : "Čtyřproužkový rezistor") + " · tažením otoč";
+        el("practiceTitle").textContent = state.mixed ? "Míchaný trénink" : q.config.title;
+        const stats = state.mixed ? null : state.stageStats[state.stageIndex];
+        el("attemptLabel").textContent = state.mixed ? "Příklad " + (state.mixedCount + 1) : "Příklad " + (stats.attempts + 1);
+        renderMastery(stats);
+        renderToleranceOptions(q.config.tolerances);
+        el("valueInput").value = "";
+        el("unitSelect").value = "1";
+        el("validationMsg").textContent = "";
+        el("feedbackPanel").hidden = true;
+        el("checkActions").hidden = false;
+        el("answerForm").querySelectorAll("input,select,button").forEach(node => node.disabled = false);
+        el("feedbackPanel").querySelectorAll("button").forEach(node => node.disabled = false);
+        state.answered = false;
+        state.stageMastered = false;
+        setTimeout(() => el("valueInput").focus(), 50);
+      }
+
+      function renderToleranceOptions(keys) {
+        el("toleranceOptions").innerHTML = keys.map(key => {
+          const t = TOLERANCES[key];
+          return '<div class="tol-option"><input type="radio" name="tolerance" id="tol-' + key + '" value="' + key + '">' +
+            '<label for="tol-' + key + '"><span class="tol-swatch" style="background:' + t.hex + '"></span><span>±' + t.tolerance + ' %</span></label></div>';
+        }).join("");
+      }
+
+      function renderMastery(stats) {
+        const recent = stats ? stats.recent.slice(-5) : [];
+        let html = "";
+        for (let i = 0; i < 5; i++) {
+          const value = recent[i];
+          html += '<span class="mastery-dot' + (value === true ? " good" : value === false ? " bad" : "") + '"></span>';
+        }
+        html += '<span class="mastery-caption">' + (state.mixed ? "bez odemykání" : "cíl: 4 správně z 5") + "</span>";
+        el("masteryRow").innerHTML = html;
+      }
+
+      function renderLesson() {
+        const stage = STAGES[state.stageIndex];
+        el("lessonStageNum").textContent = state.stageIndex + 1;
+        el("lessonKicker").textContent = stage.kicker;
+        el("lessonTitle").textContent = stage.title;
+        el("lessonLead").textContent = stage.lead;
+        let html = "";
+        if (stage.intro.length) {
+          html += '<div class="memory-grid">' + stage.intro.map(index => {
+            const c = COLORS[index];
+            return '<div class="memory-card"><div class="swatch" style="background:' + c.hex + '"></div><div><strong>' + c.name + '</strong><div class="mapping">číslice ' + c.digit + ' · násobitel ×10<sup>' + c.digit + '</sup></div></div></div>';
+          }).join("") + "</div>";
+        }
+        if (stage.toleranceIntro) {
+          html += '<div class="rule-card"><h3>Nové tolerance</h3><div class="rule-flow">' +
+            stage.toleranceIntro.map(key => {
+              const t = TOLERANCES[key];
+              return '<span class="rule-chip"><span style="display:inline-block;width:10px;height:22px;vertical-align:middle;border-radius:4px;background:' + t.hex + ';margin-right:8px"></span>±' + t.tolerance + ' %</span>';
+            }).join("") + "</div></div>";
+        }
+        if (stage.bandCount === 4) {
+          html += '<div class="rule-card"><h3>Pravidlo čtyř proužků</h3><div class="rule-flow"><span class="rule-chip">1. číslice</span><span class="rule-arrow">→</span><span class="rule-chip">2. číslice</span><span class="rule-arrow">→</span><span class="rule-chip">násobitel</span><span class="rule-arrow">→</span><span class="rule-chip">tolerance</span></div></div>';
+        } else {
+          html += '<div class="rule-card"><h3>Pravidlo pěti proužků</h3><div class="rule-flow"><span class="rule-chip">1. číslice</span><span class="rule-arrow">→</span><span class="rule-chip">2. číslice</span><span class="rule-arrow">→</span><span class="rule-chip">3. číslice</span><span class="rule-arrow">→</span><span class="rule-chip">násobitel</span><span class="rule-arrow">→</span><span class="rule-chip">tolerance</span></div></div>';
+        }
+        if (stage.metalIntro) {
+          html += '<div class="memory-grid"><div class="memory-card"><div class="swatch" style="background:' + METALS.gold.hex + '"></div><div><strong>Zlatá</strong><div class="mapping">násobitel ×0,1</div></div></div><div class="memory-card"><div class="swatch" style="background:' + METALS.silver.hex + '"></div><div><strong>Stříbrná</strong><div class="mapping">násobitel ×0,01</div></div></div></div>';
+        }
+        el("lessonContent").innerHTML = html;
+        showScreen("lessonScreen");
+      }
+
+      function parseValue() {
+        const raw = el("valueInput").value.trim().replace(/\s/g, "").replace(",", ".");
+        if (!raw) return { valid: false, message: "Nejdřív napiš číselnou hodnotu." };
+        const number = Number(raw);
+        if (!Number.isFinite(number) || number <= 0) return { valid: false, message: "Zadej kladné číslo, například 4,7 nebo 220." };
+        return { valid: true, value: number * Number(el("unitSelect").value) };
+      }
+
+      function normalizeValue(value, sigCount) {
+        let exp = Math.floor(Math.log10(value)) - (sigCount - 1);
+        let mantissa = Math.round(value / Math.pow(10, exp));
+        if (mantissa >= Math.pow(10, sigCount)) {
+          mantissa = Math.round(mantissa / 10);
+          exp++;
+        }
+        const digits = String(mantissa).padStart(sigCount, "0").slice(0, sigCount).split("").map(Number);
+        return { digits, exp, reconstructed: mantissa * Math.pow(10, exp) };
+      }
+
+      function ensureColorStat(key) {
+        if (!state.colorStats[key]) state.colorStats[key] = { seen: 0, errors: 0 };
+        return state.colorStats[key];
+      }
+
+      function recordColorExposure(q) {
+        q.bands.forEach(color => ensureColorStat(color.key).seen++);
+      }
+
+      function diagnoseErrors(answerValue, toleranceKey, gaveUp) {
+        const q = state.question;
+        const errorPositions = new Set();
+        if (gaveUp) {
+          q.bands.forEach((_, index) => errorPositions.add(index));
+        } else {
+          const valueCorrect = Math.abs(answerValue - q.value) <= Math.max(1e-9, q.value * 1e-9);
+          if (!valueCorrect) {
+            const normalized = normalizeValue(answerValue, q.sigCount);
+            q.digitValues.forEach((digit, index) => {
+              if (normalized.digits[index] !== digit) errorPositions.add(index);
+            });
+            if (normalized.exp !== q.multiplier) errorPositions.add(q.sigCount);
+            if (![...errorPositions].some(pos => pos <= q.sigCount)) {
+              for (let i = 0; i <= q.sigCount; i++) errorPositions.add(i);
+            }
+          }
+          if (toleranceKey !== q.toleranceKey) errorPositions.add(q.bands.length - 1);
+        }
+        errorPositions.forEach(index => ensureColorStat(q.bands[index].key).errors++);
+      }
+
+      function formatNumber(value, maxDecimals = 3) {
+        return new Intl.NumberFormat("cs-CZ", { maximumFractionDigits: maxDecimals, useGrouping: true }).format(value);
+      }
+
+      function formatOhms(value) {
+        if (value >= 1000000) return formatNumber(value / 1000000) + " MΩ";
+        if (value >= 1000) return formatNumber(value / 1000) + " kΩ";
+        return formatNumber(value) + " Ω";
+      }
+
+      function decodeLabel(q, index) {
+        if (index < q.sigCount) return (index + 1) + ". číslice = " + q.digitValues[index];
+        if (index === q.sigCount) {
+          if (q.multiplier === -1) return "×0,1";
+          if (q.multiplier === -2) return "×0,01";
+          return "×10" + (q.multiplier ? "<sup>" + q.multiplier + "</sup>" : "<sup>0</sup>");
+        }
+        return "±" + q.tolerance + " %";
+      }
+
+      function renderBreakdown() {
+        const q = state.question;
+        el("breakdown").innerHTML = q.bands.map((color, index) =>
+          '<span class="decode-chip"><span class="decode-color" style="background:' + color.hex + '"></span><span>' + decodeLabel(q, index) + "</span></span>"
+        ).join("");
+      }
+
+      function evaluate(gaveUp) {
+        if (state.answered) return;
+        const parsed = parseValue();
+        const tolerance = document.querySelector('input[name="tolerance"]:checked');
+        if (!gaveUp && (!parsed.valid || !tolerance)) {
+          el("validationMsg").textContent = !parsed.valid ? parsed.message : "Vyber také toleranci.";
+          (!parsed.valid ? el("valueInput") : el("toleranceOptions").querySelector("input")).focus();
+          return;
+        }
+        const q = state.question;
+        const answerValue = gaveUp ? NaN : parsed.value;
+        const toleranceKey = gaveUp ? null : tolerance.value;
+        const valueCorrect = !gaveUp && Math.abs(answerValue - q.value) <= Math.max(1e-9, q.value * 1e-9);
+        const toleranceCorrect = !gaveUp && toleranceKey === q.toleranceKey;
+        const correct = valueCorrect && toleranceCorrect;
+        state.answered = true;
+        state.totalAttempts++;
+        if (correct) state.totalCorrect++;
+        if (state.mixed) state.mixedCount++;
+        const stats = state.stageStats[state.stageIndex];
+        if (!state.mixed) {
+          stats.attempts++;
+          if (correct) stats.correct++;
+          stats.recent.push(correct);
+          if (stats.recent.length > 5) stats.recent.shift();
+          state.stageMastered = stats.attempts >= 5 && stats.recent.length === 5 && stats.recent.filter(Boolean).length >= 4;
+        }
+        recordColorExposure(q);
+        diagnoseErrors(answerValue, toleranceKey, gaveUp);
+        renderMastery(state.mixed ? null : stats);
+
+        el("validationMsg").textContent = "";
+        el("checkActions").hidden = true;
+        el("answerForm").querySelectorAll("input,select").forEach(node => node.disabled = true);
+        el("feedbackPanel").hidden = false;
+        el("feedbackPanel").className = "feedback " + (correct ? "correct" : "wrong");
+        el("feedbackTitle").textContent = correct ? "Přesně tak." : (gaveUp ? "Tady je postup." : "Ještě ne — rozlož si proužky.");
+        const correctAnswer = formatOhms(q.value) + " · ±" + q.tolerance + " %";
+        if (correct) {
+          el("feedbackText").textContent = state.stageMastered
+            ? "Správně: " + correctAnswer + ". Tuto úroveň máš zvládnutou."
+            : "Správně: " + correctAnswer + ". Zkus si stejný postup zopakovat ještě jednou.";
+        } else {
+          el("feedbackText").textContent = "Správná odpověď je " + correctAnswer + ". Všimni si, jak každá pozice přispěje k výsledku.";
+        }
+        renderBreakdown();
+        el("nextBtn").textContent = state.stageMastered ? "Dokončit úroveň" : (state.mixed && state.mixedCount >= 5 ? "Zobrazit přehled" : "Další příklad");
+        el("nextBtn").focus();
+      }
+
+      function openStageDone() {
+        const stage = STAGES[state.stageIndex];
+        const stats = state.stageStats[state.stageIndex];
+        el("stageDoneTitle").textContent = stage.title + " je v hlavě.";
+        el("stageDoneText").textContent = state.stageIndex === STAGES.length - 1
+          ? "Umíš číst čtyřproužkové i pětiproužkové rezistory bez tabulky. Teď si vytiskni přehled barev, u kterých ses během tréninku zastavil."
+          : "V posledních pěti příkladech máš alespoň čtyři správně. Další sada se odemkne až teď, takže se barvy nepletou dohromady příliš brzy.";
+        const accuracy = Math.round(stats.correct / stats.attempts * 100);
+        el("stageMiniStats").innerHTML =
+          '<div class="mini-stat"><strong>' + accuracy + ' %</strong><span>úspěšnost úrovně</span></div>' +
+          '<div class="mini-stat"><strong>' + stats.attempts + '</strong><span>vyřešených příkladů</span></div>';
+        el("continueBtn").textContent = state.stageIndex === STAGES.length - 1 ? "Zobrazit můj přehled" : "Přidat další barvy";
+        showScreen("stageDoneScreen");
+      }
+
+      function elapsedSeconds() {
+        return state.startedAt ? Math.max(0, Math.floor((Date.now() - state.startedAt) / 1000)) : 0;
+      }
+
+      function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return m + ":" + String(s).padStart(2, "0");
+      }
+
+      function updateTimer() {
+        const remaining = 900 - elapsedSeconds();
+        if (remaining > 0) {
+          el("timerText").textContent = formatTime(remaining);
+        } else {
+          el("timerText").textContent = "15 min +";
+          el("timerPill").classList.add("time-up");
+          if (remaining === 0) el("liveRegion").textContent = "Doporučených 15 minut uplynulo. Můžeš v klidu pokračovat.";
+        }
+      }
+
+      function startSession() {
+        if (state.startedAt) return;
+        state.startedAt = Date.now();
+        state.timerId = setInterval(updateTimer, 1000);
+        el("resetBtn").hidden = false;
+        renderLesson();
+      }
+
+      function errorEntries() {
+        const colorLookup = {};
+        COLORS.forEach(c => colorLookup[c.key] = c);
+        Object.values(METALS).forEach(c => colorLookup[c.key] = c);
+        return Object.entries(state.colorStats)
+          .filter(([, stat]) => stat.errors > 0)
+          .map(([key, stat]) => ({ color: colorLookup[key], ...stat }))
+          .sort((a,b) => b.errors - a.errors || a.color.name.localeCompare(b.color.name, "cs"));
+      }
+
+      function renderSummary() {
+        const accuracy = state.totalAttempts ? Math.round(state.totalCorrect / state.totalAttempts * 100) : 0;
+        const elapsed = elapsedSeconds();
+        const completedStages = state.stageStats.filter(s => s.attempts >= 5 && s.recent.filter(Boolean).length >= 4).length;
+        el("summaryLead").textContent = completedStages === STAGES.length
+          ? "Dokončil jsi všech pět úrovní včetně pětiproužkových rezistorů."
+          : "Tohle je průběžný přehled. V tréninku můžeš pokračovat a vytisknout si novou verzi.";
+        el("scoreBig").textContent = accuracy + " %";
+        el("scoreCopy").textContent = state.totalCorrect + " správných odpovědí z " + state.totalAttempts + ".";
+        el("summaryStats").innerHTML =
+          '<div class="mini-stat"><strong>' + completedStages + '/5</strong><span>zvládnuté úrovně</span></div>' +
+          '<div class="mini-stat"><strong>' + formatTime(elapsed) + '</strong><span>čas práce</span></div>';
+        const errors = errorEntries();
+        el("errorList").innerHTML = errors.length ? errors.map(item =>
+          '<div class="error-row"><div class="error-swatch" style="background:' + item.color.hex + '"></div><div><strong>' + item.color.name + '</strong><small>' + item.seen + '× v řešených rezistorech</small></div><div class="error-count">' + item.errors + '×</div></div>'
+        ).join("") : '<div class="empty-errors">Ani jedna barva zatím nebyla součástí chybně rozluštěné pozice.</div>';
+        showScreen("summaryScreen");
+      }
+
+      function resetSession() {
+        if (state.timerId) clearInterval(state.timerId);
+        state.stageIndex = 0;
+        state.stageStats = STAGES.map(() => ({ attempts: 0, correct: 0, recent: [] }));
+        state.totalAttempts = 0;
+        state.totalCorrect = 0;
+        state.colorStats = {};
+        state.question = null;
+        state.lastKey = "";
+        state.answered = false;
+        state.stageMastered = false;
+        state.startedAt = null;
+        state.timerId = null;
+        state.mixed = false;
+        state.mixedCount = 0;
+        el("timerText").textContent = "15:00";
+        el("timerPill").classList.remove("time-up");
+        el("resetBtn").hidden = true;
+        el("resetModal").hidden = true;
+        showScreen("introScreen");
+        el("startBtn").focus();
+      }
+
+      function openResetModal() {
+        el("resetModal").hidden = false;
+        el("cancelResetBtn").focus();
+      }
+
+      function closeResetModal() {
+        el("resetModal").hidden = true;
+        el("resetBtn").focus();
+      }
+
+      function setupRotatableResistors() {
+        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+        document.querySelectorAll(".resistor[data-rotatable]").forEach(model => {
+          let rotationX = -7;
+          let rotationY = -2;
+          let startX = 0;
+          let startY = 0;
+          let startRotationX = rotationX;
+          let startRotationY = rotationY;
+          let activePointer = null;
+
+          const applyRotation = () => {
+            model.style.setProperty("--rot-x", rotationX.toFixed(1) + "deg");
+            model.style.setProperty("--rot-y", rotationY.toFixed(1) + "deg");
+          };
+
+          const finishDrag = event => {
+            if (activePointer === null || (event.pointerId !== undefined && event.pointerId !== activePointer)) return;
+            if (model.hasPointerCapture && model.hasPointerCapture(activePointer)) model.releasePointerCapture(activePointer);
+            activePointer = null;
+            model.classList.remove("is-dragging");
+          };
+
+          model.addEventListener("pointerdown", event => {
+            if (event.pointerType === "mouse" && event.button !== 0) return;
+            activePointer = event.pointerId;
+            startX = event.clientX;
+            startY = event.clientY;
+            startRotationX = rotationX;
+            startRotationY = rotationY;
+            model.setPointerCapture(event.pointerId);
+            model.classList.add("is-dragging");
+            model.focus({ preventScroll: true });
+            event.preventDefault();
+          });
+
+          model.addEventListener("pointermove", event => {
+            if (event.pointerId !== activePointer) return;
+            rotationY = clamp(startRotationY + (event.clientX - startX) * .34, -42, 42);
+            rotationX = clamp(startRotationX - (event.clientY - startY) * .28, -28, 28);
+            applyRotation();
+          });
+
+          model.addEventListener("pointerup", finishDrag);
+          model.addEventListener("pointercancel", finishDrag);
+          model.addEventListener("lostpointercapture", () => {
+            activePointer = null;
+            model.classList.remove("is-dragging");
+          });
+          model.addEventListener("dragstart", event => event.preventDefault());
+
+          model.addEventListener("keydown", event => {
+            const step = event.shiftKey ? 6 : 3;
+            let handled = true;
+            if (event.key === "ArrowLeft") rotationY -= step;
+            else if (event.key === "ArrowRight") rotationY += step;
+            else if (event.key === "ArrowUp") rotationX -= step;
+            else if (event.key === "ArrowDown") rotationX += step;
+            else if (event.key === "Home") { rotationX = -7; rotationY = -2; }
+            else handled = false;
+            if (!handled) return;
+            rotationX = clamp(rotationX, -28, 28);
+            rotationY = clamp(rotationY, -42, 42);
+            applyRotation();
+            event.preventDefault();
+            el("liveRegion").textContent = "Model rezistoru otočen. Klávesou Home jej vrátíš do výchozí polohy.";
+          });
+        });
+      }
+
+      setupRotatableResistors();
+
+      el("startBtn").addEventListener("click", startSession);
+      el("beginStageBtn").addEventListener("click", () => { showScreen("practiceScreen"); renderQuestion(); });
+      el("answerForm").addEventListener("submit", event => { event.preventDefault(); evaluate(false); });
+      el("dontKnowBtn").addEventListener("click", () => evaluate(true));
+      el("nextBtn").addEventListener("click", () => {
+        if (!state.answered) return;
+        if (state.mixed && state.mixedCount >= 5) return renderSummary();
+        if (state.stageMastered) return openStageDone();
+        renderQuestion();
+      });
+      el("continueBtn").addEventListener("click", () => {
+        if (state.stageIndex === STAGES.length - 1) return renderSummary();
+        state.stageIndex++;
+        renderLesson();
+      });
+      el("printBtn").addEventListener("click", () => window.print());
+      el("mixedBtn").addEventListener("click", () => {
+        state.mixed = true;
+        state.mixedCount = 0;
+        state.stageIndex = STAGES.length - 1;
+        showScreen("practiceScreen");
+        renderQuestion();
+      });
+      el("resetBtn").addEventListener("click", openResetModal);
+      el("cancelResetBtn").addEventListener("click", closeResetModal);
+      el("confirmResetBtn").addEventListener("click", resetSession);
+      el("resetModal").addEventListener("click", event => { if (event.target === el("resetModal")) closeResetModal(); });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !el("resetModal").hidden) closeResetModal();
+      });
+      window.addEventListener("beforeprint", () => {
+        if (!el("summaryScreen").hidden) renderSummary();
+      });
+    })();
+  </script>
+</body>
+</html>
