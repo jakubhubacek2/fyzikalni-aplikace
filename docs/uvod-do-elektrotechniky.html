@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Offline interaktivní výuka základních pojmů elektrotechniky pro 1. ročník.">
+  <title>Elektrostart — úvod do elektrotechniky</title>
+  <link rel="stylesheet" href="spsei-theme.css">
+  <style>
+    :root {
+      --blue: #47657d;
+      --blue-dark: #203d52;
+      --blue-soft: #eaf0f4;
+      --lime: #dbf82a;
+      --lime-dark: #657600;
+      --paper: #f5f7f8;
+      --white: #fff;
+      --ink: #263844;
+      --muted: #617381;
+      --line: #cbd6de;
+      --red: #b9473c;
+      --red-soft: #fff0ed;
+      --green: #32705a;
+      --green-soft: #eaf6f0;
+      --shadow: 0 18px 48px rgba(47, 77, 99, .13);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(194, 207, 216, .16) 1px, transparent 1px),
+        linear-gradient(rgba(194, 207, 216, .12) 1px, transparent 1px),
+        var(--paper);
+      background-size: 48px 48px;
+      font-family: "Lilex", "Cascadia Mono", "Aptos Mono", Consolas, ui-monospace, monospace;
+      line-height: 1.55;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid var(--lime); outline-offset: 4px; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.95);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar-inner {
+      width: min(1440px, calc(100% - 36px));
+      min-height: 70px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--blue); text-decoration: none; font-weight: 800; }
+    .brand-mark { font-size: 34px; line-height: .8; letter-spacing: -.14em; }
+    .brand-copy { display: grid; line-height: 1.1; }
+    .brand-copy small { color: #8b9aa5; font-size: 9px; }
+    .brand-copy strong { font-size: 14px; }
+
+    .top-progress { min-width: min(420px, 42vw); display: grid; grid-template-columns: 1fr auto; gap: 7px 12px; align-items: center; }
+    .progress-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .progress-value { color: var(--blue-dark); font-size: 12px; font-weight: 900; }
+    .progress-track { grid-column: 1 / -1; height: 8px; background: #e1e8ec; overflow: hidden; }
+    .progress-fill { width: 0%; height: 100%; background: var(--lime); transition: width .35s ease; }
+
+    .layout {
+      width: min(1440px, calc(100% - 36px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+      gap: clamp(24px, 4vw, 64px);
+      padding: 34px 0 80px;
+    }
+
+    .rail { position: sticky; top: 104px; align-self: start; }
+    .rail-title { margin: 0 0 12px; color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .module-nav { display: grid; gap: 7px; }
+    .nav-step {
+      width: 100%; min-height: 57px; display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center;
+      padding: 9px 10px; color: var(--muted); text-align: left; background: rgba(255,255,255,.72); border: 1px solid var(--line);
+    }
+    .nav-step:hover { border-color: var(--blue); }
+    .nav-step.active { color: var(--blue-dark); background: var(--lime); border-color: var(--lime); }
+    .nav-step.done { color: var(--blue-dark); background: var(--white); border-left: 7px solid var(--lime); }
+    .nav-step.done.active { background: var(--lime); border-color: var(--lime); }
+    .nav-number { width: 30px; height: 30px; display: grid; place-items: center; color: #fff; background: var(--blue); font-weight: 900; }
+    .nav-name { font-size: 13px; font-weight: 800; }
+    .nav-time { font-size: 11px; }
+    .privacy-note { margin-top: 18px; padding: 14px; color: var(--muted); background: #fff; border: 1px solid var(--line); font-size: 11px; }
+    .privacy-note strong { color: var(--green); }
+
+    .screen { display: none; animation: enter .28s ease both; }
+    .screen.active { display: block; }
+    @keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    .kicker { display: inline-flex; align-items: center; gap: 10px; color: var(--blue); font-size: 12px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    .kicker::before { content: ""; width: 34px; height: 6px; background: var(--lime); }
+    h1, h2, h3 { color: var(--blue); letter-spacing: -.045em; }
+    h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
+    h1 { max-width: 970px; margin: 15px 0 24px; font-size: clamp(54px, 7.5vw, 104px); line-height: .86; }
+    h2 { margin: 12px 0 15px; font-size: clamp(38px, 5vw, 68px); line-height: .94; }
+    h3 { margin: 0 0 10px; font-size: clamp(21px, 2.4vw, 29px); line-height: 1.08; }
+    .lead { max-width: 850px; margin: 0; color: #526675; font-family: "Segoe UI", system-ui, sans-serif; font-size: clamp(18px, 2vw, 23px); }
+
+    .hero-grid { min-height: 690px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); gap: clamp(36px, 6vw, 84px); align-items: center; }
+    .hero-accent { background: linear-gradient(transparent 65%, var(--lime) 65% 93%, transparent 93%); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 35px; }
+    .primary, .secondary, .check-btn {
+      min-height: 48px; padding: 12px 18px; border: 0; font-weight: 900;
+    }
+    .primary, .check-btn { color: var(--blue-dark); background: var(--lime); box-shadow: 6px 6px 0 var(--blue); }
+    .primary:hover, .check-btn:hover { color: #fff; background: var(--blue); box-shadow: 6px 6px 0 var(--lime); }
+    .secondary { color: var(--blue); background: #fff; border: 1px solid var(--blue); }
+    .time-chip { color: var(--muted); font-size: 13px; font-weight: 800; }
+
+    .scope-board { min-height: 500px; position: relative; overflow: hidden; padding: 30px; color: #fff; background: var(--blue); box-shadow: var(--shadow); }
+    .scope-board::before { content: "10⁻⁶  ·  10³  ·  1,602 × 10⁻¹⁹ C"; position: absolute; top: 25px; right: 28px; color: rgba(219,248,42,.2); font-size: 20px; line-height: 1.45; }
+    .scope-board h2 { position: relative; margin-top: 66px; color: var(--lime); font-size: 30px; }
+    .route { position: relative; display: grid; gap: 17px; margin-top: 36px; }
+    .route-item { display: grid; grid-template-columns: 42px 1fr; gap: 13px; align-items: start; }
+    .route-num { width: 42px; height: 42px; display: grid; place-items: center; color: var(--blue-dark); background: var(--lime); font-weight: 900; }
+    .route-item strong { display: block; color: #fff; }
+    .route-item span { color: #dfe7ec; font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; }
+
+    .screen-head { display: flex; align-items: start; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .screen-time { flex: 0 0 auto; padding: 9px 12px; color: var(--blue-dark); background: var(--lime); font-size: 12px; font-weight: 900; }
+    .lesson-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(420px, 1.1fr); gap: 24px; align-items: start; }
+    .panel { padding: 24px; background: #fff; border: 1px solid var(--line); }
+    .panel.blue { color: #fff; background: var(--blue); border-color: var(--blue); }
+    .panel.blue h3 { color: var(--lime); }
+    .plain { font-family: "Segoe UI", system-ui, sans-serif; }
+    .formula { margin: 18px 0; padding: 17px; color: var(--blue-dark); background: var(--lime); font-size: clamp(21px, 3vw, 32px); font-weight: 900; text-align: center; }
+    .formula small { display: block; margin-top: 5px; font-size: 12px; font-weight: 700; }
+    .unit-parts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 19px; }
+    .unit-part { padding: 13px 8px; text-align: center; background: var(--blue-soft); border-top: 5px solid var(--blue); }
+    .unit-part strong { display: block; color: var(--blue); font-size: 20px; }
+    .unit-part span { color: var(--muted); font-size: 11px; }
+
+    .prefix-ladder { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 18px 0; }
+    .prefix { min-width: 0; padding: 11px 5px; text-align: center; background: var(--blue-soft); border-bottom: 5px solid var(--blue); }
+    .prefix.current { background: var(--lime); border-bottom-color: var(--lime-dark); }
+    .prefix strong { display: block; color: var(--blue-dark); font-size: 17px; }
+    .prefix small { color: var(--muted); font-size: 9px; }
+    .tip { margin: 15px 0 0; padding-left: 14px; border-left: 7px solid var(--lime); color: var(--muted); font-size: 13px; }
+
+    .practice { margin-top: 24px; }
+    .task-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 16px; }
+    .task-count { color: var(--muted); font-size: 12px; font-weight: 900; }
+    .task { display: none; }
+    .task.active { display: block; }
+    .prompt { margin: 0 0 18px; font-family: "Segoe UI", system-ui, sans-serif; font-size: 20px; font-weight: 700; }
+    .answer-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .answer-row input { width: 150px; min-height: 48px; padding: 10px 12px; color: var(--blue-dark); background: #fff; border: 2px solid var(--blue); font-size: 18px; }
+    .answer-row input.short { width: 88px; }
+    .unit-label { color: var(--blue-dark); font-weight: 900; }
+    .feedback { display: none; margin-top: 16px; padding: 14px; font-family: "Segoe UI", system-ui, sans-serif; font-weight: 700; }
+    .feedback.show { display: block; }
+    .feedback.ok { color: var(--green); background: var(--green-soft); border-left: 7px solid var(--green); }
+    .feedback.bad { color: var(--red); background: var(--red-soft); border-left: 7px solid var(--red); }
+    .module-finish { display: none; margin-top: 20px; padding: 20px; color: #fff; background: var(--blue-dark); }
+    .module-finish.show { display: block; }
+    .module-finish strong { color: var(--lime); }
+
+    details.reference { margin: 24px 0; background: #fff; border: 1px solid var(--line); }
+    details.reference summary { padding: 16px 20px; color: var(--blue); font-weight: 900; cursor: pointer; }
+    details.reference[open] summary { border-bottom: 1px solid var(--line); }
+    .table-wrap { overflow-x: auto; padding: 0 20px 20px; }
+    table { width: 100%; border-collapse: collapse; font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: #fff; background: var(--blue); }
+    tbody tr:nth-child(even) { background: var(--blue-soft); }
+
+    .concept-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0; }
+    .concept-card { min-height: 144px; padding: 18px; background: #fff; border: 1px solid var(--line); border-top: 7px solid var(--blue); }
+    .concept-card.highlight { border-top-color: var(--lime); background: #fbffd9; }
+    .concept-card .symbol { display: block; margin-bottom: 8px; color: var(--blue); font-size: 27px; font-weight: 900; }
+    .concept-card p { margin: 0; color: var(--muted); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; }
+
+    .atom-stage { min-height: 330px; position: relative; overflow: hidden; display: grid; place-items: center; background: var(--blue); }
+    .atom-stage::before, .atom-stage::after { content: ""; position: absolute; border: 2px solid rgba(255,255,255,.35); border-radius: 50%; }
+    .atom-stage::before { width: 220px; height: 220px; }
+    .atom-stage::after { width: 310px; height: 310px; }
+    .nucleus { width: 104px; height: 104px; position: relative; z-index: 2; display: grid; grid-template-columns: repeat(2, 1fr); place-items: center; padding: 14px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 12px rgba(219,248,42,.14); }
+    .nucleon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--blue-dark); font-size: 12px; font-weight: 900; }
+    .nucleon.neutral { color: var(--blue-dark); background: #fff; }
+    .electron { width: 28px; height: 28px; position: absolute; z-index: 3; display: grid; place-items: center; border-radius: 50%; color: var(--blue-dark); background: #fff; font-size: 13px; font-weight: 900; box-shadow: 0 0 0 5px rgba(255,255,255,.16); }
+    .e1 { transform: translate(0,-110px); } .e2 { transform: translate(150px,0); } .e3 { transform: translate(-150px,0); } .e4 { transform: translate(0,150px); }
+    .atom-legend { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+    .legend-chip { padding: 7px 9px; background: var(--blue-soft); font-size: 11px; font-weight: 800; }
+
+    .band-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+    .band-card { padding: 14px; background: #fff; border: 1px solid var(--line); }
+    .bands { height: 100px; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 12px; background: #f4f6f7; }
+    .band { min-height: 28px; display: grid; place-items: center; color: #fff; background: var(--blue); font-size: 10px; font-weight: 900; }
+    .gap { flex: 1; display: grid; place-items: center; color: var(--red); font-size: 10px; font-weight: 900; }
+    .band-card.conductor .gap { min-height: 0; flex: 0; overflow: hidden; }
+    .band-card.semiconductor .gap { min-height: 18px; flex: .35; }
+    .band-card.insulator .gap { min-height: 55px; }
+    .band-card strong { color: var(--blue); }
+    .band-card p { margin: 6px 0 0; color: var(--muted); font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; }
+
+    .quiz-stack { display: grid; gap: 14px; margin-top: 24px; }
+    .quiz-question { padding: 20px; background: #fff; border: 1px solid var(--line); }
+    .quiz-question.solved { border-left: 9px solid var(--green); }
+    .quiz-index { color: var(--blue); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .quiz-question h3 { margin-top: 6px; font-size: 21px; }
+    .options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 15px; }
+    .option { min-height: 52px; padding: 10px; color: var(--blue-dark); background: var(--blue-soft); border: 2px solid transparent; font-size: 13px; font-weight: 800; }
+    .option:hover:not(:disabled) { border-color: var(--blue); }
+    .option.correct { color: #fff; background: var(--green); }
+    .option.wrong { color: #fff; background: var(--red); animation: shake .2s linear 2; }
+    @keyframes shake { 50% { transform: translateX(5px); } }
+    .choice-feedback { display: none; margin: 12px 0 0; padding: 11px 13px; font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; font-weight: 700; }
+    .choice-feedback.show { display: block; }
+    .choice-feedback.ok { color: var(--green); background: var(--green-soft); }
+    .choice-feedback.bad { color: var(--red); background: var(--red-soft); }
+
+    .split-theory { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .field-demo { min-height: 250px; position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; padding: 28px; background: var(--blue); }
+    .field-half { position: relative; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.25); }
+    .charge-dot { width: 54px; height: 54px; position: relative; z-index: 2; display: grid; place-items: center; border-radius: 50%; color: var(--blue-dark); background: var(--lime); font-size: 25px; font-weight: 900; }
+    .field-half.radial::before { content: ""; position: absolute; width: 150px; height: 150px; border: 2px dashed rgba(255,255,255,.55); border-radius: 50%; box-shadow: 0 0 0 38px rgba(255,255,255,.06), 0 0 0 76px rgba(255,255,255,.04); }
+    .plates { width: 150px; height: 150px; position: relative; display: flex; justify-content: space-between; }
+    .plate { width: 16px; height: 100%; display: grid; place-items: center; color: var(--blue-dark); background: var(--lime); font-weight: 900; }
+    .field-lines { position: absolute; inset: 22px 28px; background: repeating-linear-gradient(0deg, transparent 0 19px, rgba(255,255,255,.6) 20px 22px); }
+    .demo-caption { position: absolute; left: 10px; bottom: 8px; color: #fff; font-size: 10px; font-weight: 900; }
+
+    .carrier-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+    .carrier-card { min-height: 188px; padding: 15px; background: #fff; border: 1px solid var(--line); border-top: 8px solid var(--blue); }
+    .carrier-card:nth-child(2) { border-top-color: #799144; }
+    .carrier-card:nth-child(3) { border-top-color: #a96d34; }
+    .carrier-card:nth-child(4) { border-top-color: #8d5e91; }
+    .carrier-icon { height: 65px; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 10px; color: var(--blue); background: var(--blue-soft); font-size: 23px; font-weight: 900; }
+    .carrier-card strong { color: var(--blue); }
+    .carrier-card p { margin: 7px 0 0; color: var(--muted); font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; }
+
+    .lock-card { padding: 28px; background: #fff; border: 1px solid var(--line); border-left: 10px solid var(--lime); }
+    .missing-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 15px; }
+    .worksheet { display: none; }
+    .worksheet.ready { display: block; }
+    .assignment { margin: 22px 0; padding: 24px; color: #fff; background: var(--blue); border-left: 10px solid var(--lime); }
+    .assignment h3 { color: var(--lime); }
+    .assignment p { margin: 8px 0 0; font-family: "Segoe UI", system-ui, sans-serif; font-size: 18px; }
+    .constant { display: inline-block; margin-top: 12px; padding: 7px 10px; color: var(--blue-dark); background: var(--lime); font-size: 13px; font-weight: 900; }
+    .calculation-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .calc-step { padding: 16px; background: #fff; border: 1px solid var(--line); }
+    .calc-step label { display: block; margin-bottom: 8px; color: var(--blue); font-size: 12px; font-weight: 900; }
+    .calc-input-row { display: flex; gap: 8px; align-items: center; }
+    .calc-step input { width: 100%; min-width: 0; min-height: 46px; padding: 9px; border: 2px solid var(--blue); font-size: 17px; }
+    .calc-step.invalid { background: var(--red-soft); border-color: var(--red); }
+    .final-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    .result-card { display: none; margin-top: 25px; overflow: hidden; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .result-card.show { display: block; }
+    .result-head { display: grid; grid-template-columns: 170px 1fr; gap: 24px; align-items: center; padding: 26px; color: #fff; background: var(--blue-dark); }
+    .score-disc { width: 150px; height: 150px; display: grid; place-items: center; border-radius: 50%; color: var(--blue-dark); background: var(--lime); font-size: 34px; font-weight: 900; }
+    .result-head h3 { color: var(--lime); font-size: 31px; }
+    .result-head p { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; }
+    .solution { padding: 24px; }
+    .solution-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; counter-reset: solution; }
+    .solution-step { counter-increment: solution; padding: 14px; background: var(--blue-soft); }
+    .solution-step::before { content: counter(solution); width: 28px; height: 28px; display: grid; place-items: center; margin-bottom: 10px; color: var(--blue-dark); background: var(--lime); font-weight: 900; }
+    .solution-step strong { display: block; color: var(--blue); }
+    .solution-step span { font-family: "Segoe UI", system-ui, sans-serif; font-size: 13px; }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+    @media (max-width: 1050px) {
+      .layout { grid-template-columns: 1fr; }
+      .rail { position: static; }
+      .module-nav { grid-template-columns: repeat(3, 1fr); }
+      .privacy-note { display: none; }
+      .hero-grid, .lesson-grid { grid-template-columns: 1fr; }
+      .hero-grid { padding: 45px 0; }
+      .carrier-grid { grid-template-columns: repeat(2, 1fr); }
+      .solution-steps { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .topbar-inner { min-height: 80px; }
+      .brand-copy { display: none; }
+      .top-progress { min-width: 0; flex: 1; }
+      .layout { width: min(100% - 22px, 1440px); padding-top: 20px; }
+      .module-nav { display: flex; overflow-x: auto; padding-bottom: 5px; }
+      .nav-step { min-width: 170px; }
+      h1 { font-size: clamp(48px, 15vw, 76px); }
+      .scope-board { min-height: 430px; padding: 22px; }
+      .screen-head { display: block; }
+      .screen-time { display: inline-block; margin-top: 12px; }
+      .prefix-ladder { grid-template-columns: repeat(4, 1fr); }
+      .unit-parts { grid-template-columns: 1fr; }
+      .concept-strip, .split-theory, .band-grid, .options, .calculation-form { grid-template-columns: 1fr; }
+      .carrier-grid, .solution-steps { grid-template-columns: 1fr; }
+      .field-demo { grid-template-columns: 1fr; }
+      .field-half { min-height: 190px; }
+      .result-head { grid-template-columns: 1fr; }
+      .score-disc { width: 120px; height: 120px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+    @media print { .topbar, .rail { display: none !important; } .layout { display: block; width: 100%; padding: 0; } .screen { display: none !important; } .screen.active { display: block !important; } body { background: #fff; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html" aria-label="Zpět na rozcestník aplikací">
+        <span class="brand-mark" aria-hidden="true">e1</span>
+        <span class="brand-copy"><small>&lt;spšei Ostrava&gt;</small><strong>Elektrostart</strong></span>
+      </a>
+      <div class="top-progress" aria-label="Průběh lekce">
+        <span class="progress-label" id="progressLabel">Start · připraveno</span>
+        <span class="progress-value" id="progressValue">0 %</span>
+        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="rail" aria-label="Navigace lekcí">
+      <p class="rail-title">Trasa · 45 minut</p>
+      <nav class="module-nav">
+        <button class="nav-step active" data-go="intro"><span class="nav-number">0</span><span class="nav-name">Start</span><span class="nav-time">3 min</span></button>
+        <button class="nav-step" data-go="units"><span class="nav-number">1</span><span class="nav-name">Čísla a jednotky</span><span class="nav-time">11 min</span></button>
+        <button class="nav-step" data-go="matter"><span class="nav-number">2</span><span class="nav-name">Hmota a atom</span><span class="nav-time">8 min</span></button>
+        <button class="nav-step" data-go="charge"><span class="nav-number">3</span><span class="nav-name">Náboj a pole</span><span class="nav-time">8 min</span></button>
+        <button class="nav-step" data-go="materials"><span class="nav-number">4</span><span class="nav-name">Proud v látkách</span><span class="nav-time">7 min</span></button>
+        <button class="nav-step" data-go="final"><span class="nav-number">5</span><span class="nav-name">Výstupní úloha</span><span class="nav-time">8 min</span></button>
+      </nav>
+      <p class="privacy-note"><strong>Jen v tomto počítači.</strong><br>Aplikace nic neodesílá a nevyžaduje jméno ani účet.</p>
+    </aside>
+
+    <main id="mainContent">
+      <section class="screen active" data-screen="intro" aria-labelledby="introTitle">
+        <div class="hero-grid">
+          <div>
+            <span class="kicker">Elektrotechnika · 1. ročník</span>
+            <h1 id="introTitle">Od atomu k <span class="hero-accent">ampéru.</span></h1>
+            <p class="lead">Za 45 minut si srovnáš vědecký zápis, jednotky, stavbu atomu, elektrický náboj, pole a to, co skutečně vede proud v různých látkách.</p>
+            <div class="hero-actions">
+              <button class="primary" id="startButton">Spustit lekci →</button>
+              <span class="time-chip">6 stanovišť · 18 ověření · závěr do sešitu</span>
+            </div>
+          </div>
+          <aside class="scope-board" aria-label="Co budeš umět">
+            <h2>Na konci zvládneš</h2>
+            <div class="route">
+              <div class="route-item"><span class="route-num">01</span><div><strong>Přečíst číslo</strong><span>4,7 × 10⁻³ není strašák, ale 0,0047.</span></div></div>
+              <div class="route-item"><span class="route-num">02</span><div><strong>Převést jednotku</strong><span>mili, mikro, kilo — vždy přes mocninu deseti.</span></div></div>
+              <div class="route-item"><span class="route-num">03</span><div><strong>Vysvětlit proud</strong><span>Podle nosičů náboje rozlišíš vodič, polovodič, elektrolyt i plyn.</span></div></div>
+              <div class="route-item"><span class="route-num">04</span><div><strong>Odevzdat výsledek</strong><span>Na obrazovce dostaneš přehled a početní úlohu k zápisu do sešitu.</span></div></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="units" aria-labelledby="unitsTitle">
+        <header class="screen-head">
+          <div><span class="kicker">Stanoviště 1</span><h2 id="unitsTitle">Číslo × jednotka</h2><p class="lead">Každá fyzikální veličina má značku, číselnou hodnotu a jednotku. Předpona pouze říká, jakou mocninou deseti jednotku násobíš.</p></div>
+          <span class="screen-time">11 minut</span>
+        </header>
+
+        <div class="lesson-grid">
+          <section class="panel" aria-labelledby="anatomyTitle">
+            <h3 id="anatomyTitle">Anatomie zápisu</h3>
+            <p class="plain">Napětí deset voltů zapíšeme:</p>
+            <div class="formula">U = 10 V<small>veličina = číselná hodnota × jednotka</small></div>
+            <div class="unit-parts">
+              <div class="unit-part"><strong>U</strong><span>značka veličiny</span></div>
+              <div class="unit-part"><strong>10</strong><span>číselná hodnota</span></div>
+              <div class="unit-part"><strong>V</strong><span>značka jednotky</span></div>
+            </div>
+            <p class="tip"><strong>Pozor:</strong> m je metr, ale před jednotkou může m znamenat mili = 10⁻³. Rozhoduje místo v zápisu.</p>
+          </section>
+
+          <section class="panel blue" aria-labelledby="prefixTitle">
+            <h3 id="prefixTitle">Předponová cesta</h3>
+            <p class="plain">Při kroku doprava dělíš 1000, při kroku doleva násobíš 1000.</p>
+            <div class="prefix-ladder" aria-label="Vybrané předpony SI">
+              <div class="prefix"><strong>M</strong><small>10⁶ mega</small></div>
+              <div class="prefix"><strong>k</strong><small>10³ kilo</small></div>
+              <div class="prefix current"><strong>—</strong><small>10⁰ jednotka</small></div>
+              <div class="prefix"><strong>m</strong><small>10⁻³ mili</small></div>
+              <div class="prefix"><strong>μ</strong><small>10⁻⁶ mikro</small></div>
+              <div class="prefix"><strong>n</strong><small>10⁻⁹ nano</small></div>
+              <div class="prefix"><strong>p</strong><small>10⁻¹² piko</small></div>
+            </div>
+            <p class="tip" style="color:#eaf0f4">Vědecký zápis má tvar <strong style="color:var(--lime)">a × 10ⁿ</strong>, kde 1 ≤ |a| &lt; 10. Čárka jde doleva → exponent roste; doprava → klesá.</p>
+          </section>
+        </div>
+
+        <details class="reference">
+          <summary>Otevřít tahák: základní a odvozené jednotky SI</summary>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Veličina</th><th>Základní jednotka</th><th>Značka</th><th>Elektrotechnický příklad</th></tr></thead>
+              <tbody>
+                <tr><td>délka</td><td>metr</td><td>m</td><td>průměr vodiče</td></tr>
+                <tr><td>hmotnost</td><td>kilogram</td><td>kg</td><td>hmotnost součástky</td></tr>
+                <tr><td>čas</td><td>sekunda</td><td>s</td><td>doba průchodu náboje</td></tr>
+                <tr><td>elektrický proud</td><td>ampér</td><td>A</td><td>proud obvodem</td></tr>
+                <tr><td>teplota</td><td>kelvin</td><td>K</td><td>teplota polovodiče</td></tr>
+                <tr><td>látkové množství</td><td>mol</td><td>mol</td><td>množství částic</td></tr>
+                <tr><td>svítivost</td><td>kandela</td><td>cd</td><td>svítivost zdroje</td></tr>
+              </tbody>
+            </table>
+            <table style="margin-top:16px">
+              <thead><tr><th>Veličina</th><th>Odvozená jednotka</th><th>Značka</th><th>Rozměr v SI</th></tr></thead>
+              <tbody>
+                <tr><td>síla F</td><td>newton</td><td>N</td><td>m·kg·s⁻²</td></tr>
+                <tr><td>energie E</td><td>joule</td><td>J</td><td>m²·kg·s⁻²</td></tr>
+                <tr><td>výkon P</td><td>watt</td><td>W</td><td>m²·kg·s⁻³</td></tr>
+                <tr><td>napětí U</td><td>volt</td><td>V</td><td>m²·kg·s⁻³·A⁻¹</td></tr>
+                <tr><td>odpor R</td><td>ohm</td><td>Ω</td><td>m²·kg·s⁻³·A⁻²</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <section class="panel practice" aria-labelledby="unitsPracticeTitle">
+          <div class="task-head"><h3 id="unitsPracticeTitle">Ověř si postup</h3><span class="task-count" id="unitTaskCount">Úloha 1 ze 3</span></div>
+
+          <div class="task active" data-unit-task="0">
+            <p class="prompt">Zapiš číslo 0,000 047 ve vědeckém tvaru.</p>
+            <div class="answer-row"><label><span class="sr-only">Mantisa</span><input inputmode="decimal" id="uMantissa" aria-label="Mantisa"></label><span>× 10</span><sup><label><span class="sr-only">Exponent</span><input class="short" inputmode="numeric" id="uExponent" aria-label="Exponent"></label></sup><button class="check-btn" data-check-unit="0">Ověřit</button></div>
+            <div class="feedback" data-feedback-unit="0" aria-live="polite"></div>
+          </div>
+
+          <div class="task" data-unit-task="1">
+            <p class="prompt">Převeď 3,6 kΩ na základní jednotku Ω.</p>
+            <div class="answer-row"><label><span class="sr-only">Hodnota v ohmech</span><input inputmode="decimal" id="uKilo"></label><span class="unit-label">Ω</span><button class="check-btn" data-check-unit="1">Ověřit</button></div>
+            <div class="feedback" data-feedback-unit="1" aria-live="polite"></div>
+          </div>
+
+          <div class="task" data-unit-task="2">
+            <p class="prompt">Převeď 0,000 82 A na mikroampéry.</p>
+            <div class="answer-row"><label><span class="sr-only">Hodnota v mikroampérech</span><input inputmode="decimal" id="uMicro"></label><span class="unit-label">μA</span><button class="check-btn" data-check-unit="2">Ověřit</button></div>
+            <div class="feedback" data-feedback-unit="2" aria-live="polite"></div>
+          </div>
+
+          <div class="module-finish" id="unitsFinish"><strong>Jednotky drží.</strong> Umíš propojit desetinný i vědecký zápis s předponou SI. <button class="primary" data-go="matter">Pokračovat k atomu →</button></div>
+        </section>
+      </section>
+
+      <section class="screen" data-screen="matter" aria-labelledby="matterTitle">
+        <header class="screen-head">
+          <div><span class="kicker">Stanoviště 2</span><h2 id="matterTitle">Hmota, atom, vodivost</h2><p class="lead">Látka je tvořena částicemi. Elektrické pole naopak zprostředkuje jejich silové působení. O vodivosti rozhoduje, jak snadno se mohou nosiče náboje pohybovat.</p></div>
+          <span class="screen-time">8 minut</span>
+        </header>
+
+        <div class="concept-strip">
+          <article class="concept-card highlight"><span class="symbol">hmota</span><p>Společný název pro látku i pole. Má energii a může předávat účinky.</p></article>
+          <article class="concept-card"><span class="symbol">látka</span><p>Zabírá objem, skládá se z částic a částice mohou nést elektrický náboj.</p></article>
+          <article class="concept-card"><span class="symbol">pole</span><p>Vyplňuje prostor a zprostředkuje silové působení mezi částicemi či tělesy.</p></article>
+        </div>
+
+        <div class="lesson-grid">
+          <section aria-labelledby="atomTitle">
+            <div class="atom-stage" aria-label="Zjednodušený model atomu">
+              <div class="nucleus"><span class="nucleon">p+</span><span class="nucleon neutral">n⁰</span><span class="nucleon neutral">n⁰</span><span class="nucleon">p+</span></div>
+              <span class="electron e1">e−</span><span class="electron e2">e−</span><span class="electron e3">e−</span><span class="electron e4">e−</span>
+            </div>
+            <div class="atom-legend"><span class="legend-chip">proton: +e</span><span class="legend-chip">neutron: 0</span><span class="legend-chip">elektron: −e</span><span class="legend-chip">neutrální atom: p = e</span></div>
+          </section>
+          <section class="panel" aria-labelledby="atomTitle">
+            <h3 id="atomTitle">Co drží atom pohromadě?</h3>
+            <p class="plain">Jádro obsahuje protony a neutrony, obal elektrony. Proton a elektron mají stejně velký, ale opačný náboj. Hmotnost elektronu je přibližně 1/1836 hmotnosti protonu.</p>
+            <div class="table-wrap" style="padding:0">
+              <table>
+                <thead><tr><th>Částice</th><th>Náboj</th><th>Hmotnost</th></tr></thead>
+                <tbody><tr><td>elektron e</td><td>−1</td><td>9,109 × 10⁻³¹ kg</td></tr><tr><td>proton p</td><td>+1</td><td>1,672 × 10⁻²⁷ kg</td></tr><tr><td>neutron n</td><td>0</td><td>1,675 × 10⁻²⁷ kg</td></tr></tbody>
+              </table>
+            </div>
+            <p class="tip">Odtržením elektronů vzniká <strong>kladný iont</strong>. Přijetím elektronů vzniká <strong>záporný iont</strong>.</p>
+          </section>
+        </div>
+
+        <section class="panel" style="margin-top:24px" aria-labelledby="bandsTitle">
+          <h3 id="bandsTitle">Tři šířky zakázaného pásma</h3>
+          <p class="plain">Valenční elektrony vedou proud, teprve když získají dostupné energetické stavy ve vodivostním pásmu.</p>
+          <div class="band-grid">
+            <article class="band-card conductor"><div class="bands"><span class="band">vodivostní pásmo</span><span class="gap">pásma se dotýkají</span><span class="band">valenční pásmo</span></div><strong>Vodič</strong><p>Pásma se dotýkají nebo překrývají. Elektrony se pohybují snadno. Cu, Al, Ag.</p></article>
+            <article class="band-card semiconductor"><div class="bands"><span class="band">vodivostní pásmo</span><span class="gap">úzká mezera</span><span class="band">valenční pásmo</span></div><strong>Polovodič</strong><p>Vodivost mění teplota, světlo a příměsi. Si, Ge, Se.</p></article>
+            <article class="band-card insulator"><div class="bands"><span class="band">vodivostní pásmo</span><span class="gap">široká mezera</span><span class="band">valenční pásmo</span></div><strong>Izolant</strong><p>Elektrony do vodivostního pásma běžně nepřejdou. Sklo, keramika, olej.</p></article>
+          </div>
+        </section>
+
+        <div class="quiz-stack" aria-label="Ověření stavby hmoty">
+          <article class="quiz-question" data-group="m-ion" data-module="matter" data-correct="cation" data-success="13 protonů a 10 elektronů dává výsledný náboj +3e, tedy kladný iont.">
+            <span class="quiz-index">1 / 3 · iont</span><h3>Částice má 13 protonů a 10 elektronů. Co je to?</h3>
+            <div class="options"><button class="option" data-choice="neutral">neutrální atom</button><button class="option" data-choice="cation">kladný iont</button><button class="option" data-choice="anion">záporný iont</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="m-conductor" data-module="matter" data-correct="free" data-success="U kovů jsou valenční elektrony slabě vázané a mohou se látkou pohybovat.">
+            <span class="quiz-index">2 / 3 · vodič</span><h3>Proč kovy obvykle dobře vedou elektrický proud?</h3>
+            <div class="options"><button class="option" data-choice="heavy">Mají těžké protony.</button><button class="option" data-choice="free">Mají volně pohyblivé elektrony.</button><button class="option" data-choice="none">Nemají elektrický náboj.</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="m-silicon" data-module="matter" data-correct="semi" data-success="Křemík je polovodič; jeho vodivost lze výrazně ovlivnit teplotou, světlem a příměsí.">
+            <span class="quiz-index">3 / 3 · materiál</span><h3>Kam patří čistý křemík (Si)?</h3>
+            <div class="options"><button class="option" data-choice="conductor">vodič</button><button class="option" data-choice="semi">polovodič</button><button class="option" data-choice="insulator">izolant</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+        </div>
+        <div class="module-finish" id="matterFinish"><strong>Atom sestaven.</strong> Rozlišuješ částice, iont i pásmový důvod vodivosti. <button class="primary" data-go="charge">Pokračovat k náboji →</button></div>
+      </section>
+
+      <section class="screen" data-screen="charge" aria-labelledby="chargeTitle">
+        <header class="screen-head">
+          <div><span class="kicker">Stanoviště 3</span><h2 id="chargeTitle">Náboj vytváří pole</h2><p class="lead">Elektrický náboj lze přenášet a přemisťovat, ale v izolované soustavě jej nelze vytvořit ani zničit. Pole pak zprostředkuje jeho působení na další náboje.</p></div>
+          <span class="screen-time">8 minut</span>
+        </header>
+
+        <div class="split-theory">
+          <section class="panel">
+            <h3>Elektrický náboj Q</h3>
+            <p class="plain">Existuje kladný a záporný náboj. Stejné náboje se odpuzují, opačné přitahují. Nejmenší samostatný náboj má velikost:</p>
+            <div class="formula">e = 1,602 × 10⁻¹⁹ C</div>
+            <p class="tip">Jednotka <strong>1 coulomb</strong> je náboj přenesený proudem 1 A za 1 s. Proto <strong>Q = I · t</strong>.</p>
+          </section>
+          <section class="panel blue">
+            <h3>Zákon zachování</h3>
+            <p class="plain">Při tření, dotyku nebo indukci se elektrony pouze přesunují. Součet nábojů izolované soustavy zůstává stejný.</p>
+            <div class="formula">Q<sub>před</sub> = Q<sub>po</sub><small>náboj nelze vytvořit ani zničit</small></div>
+            <p class="plain">Prakticky: elektrostatické lakování, odlučovače popílku, kopírky a laserové tiskárny.</p>
+          </section>
+        </div>
+
+        <section class="field-demo" aria-label="Porovnání nehomogenního a homogenního pole">
+          <div class="field-half radial"><span class="charge-dot">+</span><span class="demo-caption">nehomogenní · účinek se vzdáleností slábne</span></div>
+          <div class="field-half"><div class="plates"><span class="plate">+</span><span class="field-lines"></span><span class="plate">−</span></div><span class="demo-caption">homogenní · mezi rovnoběžnými deskami</span></div>
+        </section>
+
+        <div class="quiz-stack" aria-label="Ověření náboje a pole">
+          <article class="quiz-question" data-group="q-calc" data-module="charge" data-numeric="3" data-success="Q = I · t = 0,025 A · 120 s = 3 C.">
+            <span class="quiz-index">1 / 4 · výpočet</span><h3>Vodičem prochází proud 25 mA po dobu 120 s. Jaký náboj projde?</h3>
+            <div class="answer-row"><input id="chargeCalc" inputmode="decimal" aria-label="Náboj v coulombech"><span class="unit-label">C</span><button class="check-btn" data-check-numeric="q-calc">Ověřit</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="q-law" data-module="charge" data-correct="same" data-success="V izolované soustavě se náboj pouze přerozděluje; jeho celková hodnota je stálá.">
+            <span class="quiz-index">2 / 4 · zachování</span><h3>Co platí pro celkový náboj izolované soustavy?</h3>
+            <div class="options"><button class="option" data-choice="grows">samovolně roste</button><button class="option" data-choice="same">zůstává stejný</button><button class="option" data-choice="zero">musí být nulový</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="q-field" data-module="charge" data-correct="plates" data-success="Mezi velkými rovnoběžnými deskami je v centrální oblasti přibližně homogenní pole.">
+            <span class="quiz-index">3 / 4 · prostor</span><h3>Kde očekáváš přibližně homogenní elektrické pole?</h3>
+            <div class="options"><button class="option" data-choice="point">u osamoceného bodového náboje</button><button class="option" data-choice="plates">mezi rovnoběžnými deskami</button><button class="option" data-choice="none">mimo každý náboj</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="q-time" data-module="charge" data-correct="coupled" data-success="Časová změna elektrického pole vyvolává pole magnetické a změna magnetického pole pole elektrické.">
+            <span class="quiz-index">4 / 4 · čas</span><h3>Co je typické pro nestacionární elektrické pole?</h3>
+            <div class="options"><button class="option" data-choice="fixed">nezávisí na čase</button><button class="option" data-choice="coupled">souvisí se vznikem magnetického pole</button><button class="option" data-choice="chargefree">existuje bez energie i náboje</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+        </div>
+        <div class="module-finish" id="chargeFinish"><strong>Pole zachyceno.</strong> Umíš použít Q = I·t a rozlišit základní druhy pole. <button class="primary" data-go="materials">Pokračovat k proudům →</button></div>
+      </section>
+
+      <section class="screen" data-screen="materials" aria-labelledby="materialsTitle">
+        <header class="screen-head">
+          <div><span class="kicker">Stanoviště 4</span><h2 id="materialsTitle">Kdo nese proud?</h2><p class="lead">Elektrický proud je usměrněný pohyb částic s nábojem. Nosič však není vždy elektron — záleží na látce a podmínkách.</p></div>
+          <span class="screen-time">7 minut</span>
+        </header>
+
+        <div class="carrier-grid">
+          <article class="carrier-card"><div class="carrier-icon">e− → →</div><strong>Kovový vodič</strong><p>Volné elektrony. Nízká rezistivita; dobré vodiče Cu, Ag, Al.</p></article>
+          <article class="carrier-card"><div class="carrier-icon">e− ↔ □</div><strong>Polovodič</strong><p>Elektrony a díry. Vodivost roste teplem, světlem nebo dotováním.</p></article>
+          <article class="carrier-card"><div class="carrier-icon">+ → ← −</div><strong>Elektrolyt</strong><p>Kationty a anionty. Čistá voda vede velmi špatně; přidání soli dodá ionty.</p></article>
+          <article class="carrier-card"><div class="carrier-icon">e− ⚡ +</div><strong>Ionizovaný plyn</strong><p>Elektrony a ionty po ionizaci. Pomáhá vysoká teplota, silné pole či nízký tlak.</p></article>
+        </div>
+
+        <details class="reference" open>
+          <summary>Polovodič pod lupou: vlastní a nevlastní vodivost</summary>
+          <div class="table-wrap">
+            <table><thead><tr><th>Typ</th><th>Jak vzniká</th><th>Převažující nosič</th></tr></thead><tbody>
+              <tr><td>vlastní</td><td>čistý krystal získá energii teplem nebo světlem</td><td>stejný počet elektronů a děr</td></tr>
+              <tr><td>N</td><td>příměs má o jeden valenční elektron více</td><td>volné elektrony</td></tr>
+              <tr><td>P</td><td>příměs má o jeden valenční elektron méně</td><td>díry</td></tr>
+            </tbody></table>
+            <p class="tip">Díra není částice. Je to prázdné místo po elektronu, které se v krystalu jeví jako kladný nosič pohybující se opačně než elektrony.</p>
+          </div>
+        </details>
+
+        <div class="quiz-stack" aria-label="Ověření proudu v látkách">
+          <article class="quiz-question" data-group="mat-metal" data-module="materials" data-correct="electrons" data-success="V kovech proud přenášejí volné elektrony.">
+            <span class="quiz-index">1 / 4 · kov</span><h3>Kdo přenáší proud v měděném vodiči?</h3><div class="options"><button class="option" data-choice="protons">protony</button><button class="option" data-choice="electrons">volné elektrony</button><button class="option" data-choice="holes">jen díry</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="mat-liquid" data-module="materials" data-correct="ions" data-success="V elektrolytu se opačnými směry pohybují kationty a anionty.">
+            <span class="quiz-index">2 / 4 · kapalina</span><h3>Kdo přenáší proud ve vodném roztoku kuchyňské soli?</h3><div class="options"><button class="option" data-choice="ions">kationty a anionty</button><button class="option" data-choice="neutrons">neutrony</button><button class="option" data-choice="photons">fotony</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="mat-semi" data-module="materials" data-correct="all" data-success="Vodivost polovodiče lze řídit teplotou, osvětlením i příměsí.">
+            <span class="quiz-index">3 / 4 · polovodič</span><h3>Co může zvýšit vodivost čistého polovodiče?</h3><div class="options"><button class="option" data-choice="cool">jen ochlazení</button><button class="option" data-choice="pressure">pouze vysoký tlak</button><button class="option" data-choice="all">teplo nebo světlo</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+          <article class="quiz-question" data-group="mat-gas" data-module="materials" data-correct="ionize" data-success="Plyn začne vést po ionizaci, kdy vzniknou volné elektrony a ionty. Projevy jsou oblouk, koróna či doutnavý výboj.">
+            <span class="quiz-index">4 / 4 · plyn</span><h3>Co musí běžně nastat, aby plyn vedl elektrický proud?</h3><div class="options"><button class="option" data-choice="freeze">zmrznutí</button><button class="option" data-choice="ionize">ionizace</button><button class="option" data-choice="neutral">úplná neutralizace</button></div><p class="choice-feedback" aria-live="polite"></p>
+          </article>
+        </div>
+        <div class="module-finish" id="materialsFinish"><strong>Nosiče určeny.</strong> Rozlišuješ proud v kovu, polovodiči, elektrolytu i plynu. <button class="primary" data-go="final">Jdu na výstupní úlohu →</button></div>
+      </section>
+
+      <section class="screen" data-screen="final" aria-labelledby="finalTitle">
+        <header class="screen-head">
+          <div><span class="kicker">Stanoviště 5</span><h2 id="finalTitle">Výstupní úloha</h2><p class="lead">Teď propojíš převody jednotek, vědecký zápis, elektrický náboj a elementární náboj. Postup nejprve napiš do sešitu, potom jej ověř.</p></div>
+          <span class="screen-time">8 minut</span>
+        </header>
+
+        <div class="lock-card" id="finalLock">
+          <h3>Úloha zatím čeká</h3><p class="plain">Nejdřív dokonči čtyři tréninková stanoviště. Můžeš se sem podívat kdykoli; aplikace ti ukáže, co chybí.</p><div class="missing-list" id="missingList"></div>
+        </div>
+
+        <div class="worksheet" id="worksheet">
+          <div class="assignment">
+            <h3>Zadání do sešitu</h3>
+            <p id="assignmentText"></p>
+            <span class="constant">Použij e = 1,602 × 10⁻¹⁹ C</span>
+          </div>
+
+          <section class="panel">
+            <h3>Nejdřív papír, potom kontrola</h3>
+            <p class="plain">U každého kroku napiš vzorec, dosaď hodnoty v základních jednotkách a připoj jednotku výsledku.</p>
+            <div class="calculation-form">
+              <div class="calc-step" data-final-field="current"><label for="finalCurrent">1. Proud převedený na ampéry</label><div class="calc-input-row"><input id="finalCurrent" inputmode="decimal"><span>A</span></div></div>
+              <div class="calc-step" data-final-field="time"><label for="finalTime">2. Čas převedený na sekundy</label><div class="calc-input-row"><input id="finalTime" inputmode="decimal"><span>s</span></div></div>
+              <div class="calc-step" data-final-field="charge"><label for="finalCharge">3. Přenesený náboj Q</label><div class="calc-input-row"><input id="finalCharge" inputmode="decimal"><span>C</span></div></div>
+              <div class="calc-step" data-final-field="electrons"><label>4. Přibližný počet elektronů N</label><div class="calc-input-row"><input id="finalMantissa" inputmode="decimal" aria-label="Mantisa počtu elektronů"><span>× 10</span><sup><input id="finalExponent" inputmode="numeric" aria-label="Exponent počtu elektronů" style="width:70px"></sup></div></div>
+            </div>
+            <div class="final-actions"><button class="primary" id="checkFinal">Vyhodnotit výpočet</button><button class="secondary" id="newAssignment">Jiné zadání</button></div>
+            <div class="feedback" id="finalFeedback" aria-live="polite"></div>
+          </section>
+
+          <section class="result-card" id="resultCard" aria-labelledby="resultTitle">
+            <div class="result-head"><div class="score-disc" id="scoreDisc">100 %</div><div><h3 id="resultTitle">Elektrostart dokončen</h3><p id="resultSummary"></p></div></div>
+            <div class="solution">
+              <h3>Kontrolní řešení tvého zadání</h3>
+              <div class="solution-steps" id="solutionSteps"></div>
+              <div class="final-actions"><button class="primary" id="printResult">Vytisknout / uložit jako PDF</button><button class="secondary" id="restartLesson">Začít znovu</button></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const screens = [...document.querySelectorAll('[data-screen]')];
+      const navButtons = [...document.querySelectorAll('.nav-step')];
+      const totalChecks = 18;
+      const moduleRequirements = {
+        matter: ['m-ion', 'm-conductor', 'm-silicon'],
+        charge: ['q-calc', 'q-law', 'q-field', 'q-time'],
+        materials: ['mat-metal', 'mat-liquid', 'mat-semi', 'mat-gas']
+      };
+      const moduleNames = { units: 'Čísla a jednotky', matter: 'Hmota a atom', charge: 'Náboj a pole', materials: 'Proud v látkách' };
+      const wrongHints = {
+        'm-ion': 'Porovnej počet kladných protonů a záporných elektronů.',
+        'm-conductor': 'Hledej částice, které nejsou pevně vázané k jednomu jádru.',
+        'm-silicon': 'Jeho vodivost leží mezi kovem a izolantem a dá se řídit příměsí.',
+        'q-law': 'Vzpomeň si: náboj se může přesunout, ale ne vzniknout z ničeho.',
+        'q-field': 'Homogenní znamená přibližně stejný účinek v každém bodě oblasti.',
+        'q-time': 'Proměnné elektrické a magnetické pole jsou vzájemně svázané.',
+        'mat-metal': 'Protony zůstávají v jádrech atomů kovu.',
+        'mat-liquid': 'Sůl se ve vodě rozpadá na kladné a záporné částice.',
+        'mat-semi': 'Energie může valenční elektron dostat do vodivostního pásma.',
+        'mat-gas': 'Plyn potřebuje volné nabité částice — elektrony a ionty.'
+      };
+      const state = {
+        current: 'intro',
+        completed: new Set(),
+        solved: new Set(),
+        correctChecks: 0,
+        wrong: 0,
+        unitTask: 0,
+        finalVariant: Math.floor(Math.random() * 5),
+        finalSolved: false
+      };
+
+      const finalVariants = [
+        { current: '2,5 mA', currentA: 0.0025, time: '3 min', timeS: 180 },
+        { current: '0,80 mA', currentA: 0.0008, time: '75 s', timeS: 75 },
+        { current: '12 mA', currentA: 0.012, time: '25 s', timeS: 25 },
+        { current: '45 μA', currentA: 0.000045, time: '4 min', timeS: 240 },
+        { current: '1,2 A', currentA: 1.2, time: '0,5 min', timeS: 30 }
+      ];
+
+      const parseNumber = value => {
+        if (typeof value !== 'string') return NaN;
+        const cleaned = value.trim().replace(/\s/g, '').replace(',', '.').replace(/[−–]/g, '-').replace(/[×·]/g, 'x');
+        const sci = cleaned.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))(?:x10\^?([+-]?\d+))$/i);
+        if (sci) return Number(sci[1]) * 10 ** Number(sci[2]);
+        return Number(cleaned);
+      };
+
+      const nearly = (actual, expected, tolerance = 1e-9) => Number.isFinite(actual) && Math.abs(actual - expected) <= Math.max(tolerance, Math.abs(expected) * tolerance);
+      const format = (value, digits = 5) => value.toLocaleString('cs-CZ', { maximumSignificantDigits: digits });
+
+      function markSolved(id) {
+        if (state.solved.has(id)) return;
+        state.solved.add(id);
+        state.correctChecks += 1;
+      }
+
+      function updateProgress() {
+        const pct = Math.round(state.completed.size / 5 * 100);
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressValue').textContent = pct + ' %';
+        document.getElementById('progressLabel').textContent = state.completed.size ? `Splněno ${state.completed.size} z 5 stanovišť` : 'Start · připraveno';
+        navButtons.forEach(btn => btn.classList.toggle('done', state.completed.has(btn.dataset.go)));
+        prepareFinal();
+      }
+
+      function completeModule(module) {
+        if (state.completed.has(module)) return;
+        state.completed.add(module);
+        document.getElementById(module + 'Finish')?.classList.add('show');
+        updateProgress();
+      }
+
+      function checkModule(module) {
+        const requirements = moduleRequirements[module] || [];
+        if (requirements.every(id => state.solved.has(id))) completeModule(module);
+      }
+
+      function goTo(name) {
+        const target = screens.find(screen => screen.dataset.screen === name);
+        if (!target) return;
+        state.current = name;
+        screens.forEach(screen => screen.classList.toggle('active', screen === target));
+        navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.go === name));
+        if (name === 'final') prepareFinal();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const heading = target.querySelector('h1, h2');
+        if (heading) { heading.setAttribute('tabindex', '-1'); setTimeout(() => heading.focus({ preventScroll: true }), 80); }
+      }
+
+      document.addEventListener('click', event => {
+        const go = event.target.closest('[data-go]');
+        if (go) goTo(go.dataset.go);
+      });
+      document.getElementById('startButton').addEventListener('click', () => goTo('units'));
+
+      const unitChecks = [
+        () => nearly(parseNumber(document.getElementById('uMantissa').value), 4.7) && parseNumber(document.getElementById('uExponent').value) === -5,
+        () => nearly(parseNumber(document.getElementById('uKilo').value), 3600),
+        () => nearly(parseNumber(document.getElementById('uMicro').value), 820)
+      ];
+      const unitHints = [
+        'Čárku posuň o 5 míst doprava, aby vzniklo číslo 4,7. Posun doprava znamená záporný exponent.',
+        'Předpona kilo znamená 10³. Počítej 3,6 × 1000.',
+        'Mikro je 10⁻⁶. Platí 1 A = 1 000 000 μA.'
+      ];
+      const unitSuccess = [
+        'Správně: 0,000 047 = 4,7 × 10⁻⁵.',
+        'Správně: 3,6 kΩ = 3,6 × 10³ Ω = 3 600 Ω.',
+        'Správně: 0,000 82 A = 820 μA.'
+      ];
+
+      document.querySelectorAll('[data-check-unit]').forEach(button => button.addEventListener('click', () => {
+        const index = Number(button.dataset.checkUnit);
+        if (state.solved.has('unit-' + index)) return;
+        const feedback = document.querySelector(`[data-feedback-unit="${index}"]`);
+        const ok = unitChecks[index]();
+        feedback.className = 'feedback show ' + (ok ? 'ok' : 'bad');
+        feedback.textContent = ok ? unitSuccess[index] : 'Ještě ne. ' + unitHints[index];
+        if (!ok) { state.wrong += 1; return; }
+        markSolved('unit-' + index);
+        button.disabled = true;
+        setTimeout(() => {
+          document.querySelector(`[data-unit-task="${index}"]`).classList.remove('active');
+          if (index < 2) {
+            state.unitTask = index + 1;
+            document.querySelector(`[data-unit-task="${index + 1}"]`).classList.add('active');
+            document.getElementById('unitTaskCount').textContent = `Úloha ${index + 2} ze 3`;
+            document.querySelector(`[data-unit-task="${index + 1}"] input`)?.focus();
+          } else {
+            document.getElementById('unitTaskCount').textContent = '3 ze 3 · splněno';
+            completeModule('units');
+          }
+        }, 650);
+      }));
+
+      document.querySelectorAll('.option[data-choice]').forEach(button => button.addEventListener('click', () => {
+        const question = button.closest('.quiz-question');
+        const id = question.dataset.group;
+        if (state.solved.has(id)) return;
+        const feedback = question.querySelector('.choice-feedback');
+        const ok = button.dataset.choice === question.dataset.correct;
+        question.querySelectorAll('.option').forEach(option => option.classList.remove('wrong'));
+        if (!ok) {
+          state.wrong += 1;
+          button.classList.add('wrong');
+          feedback.className = 'choice-feedback show bad';
+          feedback.textContent = 'Ještě ne. ' + (wrongHints[id] || 'Vrať se k minilekci nad otázkou.');
+          setTimeout(() => button.classList.remove('wrong'), 700);
+          return;
+        }
+        markSolved(id);
+        button.classList.add('correct');
+        question.classList.add('solved');
+        question.querySelectorAll('.option').forEach(option => { option.disabled = true; });
+        feedback.className = 'choice-feedback show ok';
+        feedback.textContent = question.dataset.success;
+        checkModule(question.dataset.module);
+      }));
+
+      document.querySelectorAll('[data-check-numeric]').forEach(button => button.addEventListener('click', () => {
+        const question = button.closest('.quiz-question');
+        const id = button.dataset.checkNumeric;
+        if (state.solved.has(id)) return;
+        const input = question.querySelector('input');
+        const feedback = question.querySelector('.choice-feedback');
+        const ok = nearly(parseNumber(input.value), Number(question.dataset.numeric), 0.0001);
+        if (!ok) {
+          state.wrong += 1;
+          feedback.className = 'choice-feedback show bad';
+          feedback.textContent = 'Ještě ne. Nejdřív převeď 25 mA = 0,025 A, potom použij Q = I · t.';
+          input.focus();
+          return;
+        }
+        markSolved(id);
+        question.classList.add('solved');
+        input.disabled = true;
+        button.disabled = true;
+        feedback.className = 'choice-feedback show ok';
+        feedback.textContent = question.dataset.success;
+        checkModule(question.dataset.module);
+      }));
+
+      function prepareFinal() {
+        const needed = ['units', 'matter', 'charge', 'materials'];
+        const missing = needed.filter(module => !state.completed.has(module));
+        const lock = document.getElementById('finalLock');
+        const worksheet = document.getElementById('worksheet');
+        const list = document.getElementById('missingList');
+        list.innerHTML = '';
+        if (missing.length) {
+          lock.hidden = false;
+          worksheet.classList.remove('ready');
+          missing.forEach(module => {
+            const button = document.createElement('button');
+            button.className = 'secondary';
+            button.dataset.go = module;
+            button.textContent = 'Doplnit: ' + moduleNames[module];
+            list.appendChild(button);
+          });
+          return;
+        }
+        lock.hidden = true;
+        worksheet.classList.add('ready');
+        renderAssignment();
+      }
+
+      function currentVariant() {
+        const base = finalVariants[state.finalVariant];
+        const charge = base.currentA * base.timeS;
+        const electrons = charge / 1.602e-19;
+        const exponent = Math.floor(Math.log10(electrons));
+        const mantissa = electrons / 10 ** exponent;
+        return { ...base, charge, electrons, exponent, mantissa };
+      }
+
+      function renderAssignment() {
+        const v = currentVariant();
+        document.getElementById('assignmentText').textContent = `Vodičem prochází proud ${v.current} po dobu ${v.time}. Urči elektrický náboj Q, který projde průřezem vodiče, a přibližný počet elektronů N, které tento náboj představuje.`;
+      }
+
+      function clearFinalForm() {
+        ['finalCurrent', 'finalTime', 'finalCharge', 'finalMantissa', 'finalExponent'].forEach(id => { document.getElementById(id).value = ''; });
+        document.querySelectorAll('.calc-step').forEach(step => step.classList.remove('invalid'));
+        const feedback = document.getElementById('finalFeedback');
+        feedback.className = 'feedback';
+        feedback.textContent = '';
+        document.getElementById('resultCard').classList.remove('show');
+      }
+
+      document.getElementById('newAssignment').addEventListener('click', () => {
+        state.finalVariant = (state.finalVariant + 1) % finalVariants.length;
+        state.finalSolved = false;
+        clearFinalForm();
+        renderAssignment();
+        document.getElementById('finalCurrent').focus();
+      });
+
+      document.getElementById('checkFinal').addEventListener('click', () => {
+        const v = currentVariant();
+        const checks = {
+          current: nearly(parseNumber(document.getElementById('finalCurrent').value), v.currentA, 0.005),
+          time: nearly(parseNumber(document.getElementById('finalTime').value), v.timeS, 0.005),
+          charge: nearly(parseNumber(document.getElementById('finalCharge').value), v.charge, 0.005),
+          electrons: nearly(parseNumber(document.getElementById('finalMantissa').value), v.mantissa, 0.02) && parseNumber(document.getElementById('finalExponent').value) === v.exponent
+        };
+        document.querySelectorAll('.calc-step').forEach(step => step.classList.toggle('invalid', !checks[step.dataset.finalField]));
+        const feedback = document.getElementById('finalFeedback');
+        const failed = Object.entries(checks).filter(([, ok]) => !ok).map(([key]) => key);
+        if (failed.length) {
+          state.wrong += 1;
+          const names = { current: 'převod proudu', time: 'převod času', charge: 'výpočet Q', electrons: 'vědecký zápis N' };
+          feedback.className = 'feedback show bad';
+          feedback.textContent = 'Zkontroluj: ' + failed.map(key => names[key]).join(', ') + '. Červeně jsou označené kroky, které ještě nesedí.';
+          document.querySelector('.calc-step.invalid input')?.focus();
+          return;
+        }
+        feedback.className = 'feedback show ok';
+        feedback.textContent = 'Výpočet souhlasí. Níže máš výsledek i úplný kontrolní postup.';
+        if (!state.finalSolved) {
+          ['final-current', 'final-time', 'final-charge', 'final-electrons'].forEach(markSolved);
+          state.finalSolved = true;
+        }
+        completeModule('final');
+        showResult(v);
+      });
+
+      function showResult(v) {
+        const efficiency = Math.round(totalChecks / (totalChecks + state.wrong) * 100);
+        document.getElementById('scoreDisc').textContent = efficiency + ' %';
+        document.getElementById('resultSummary').textContent = `${state.correctChecks} z ${totalChecks} ověření zvládnuto. Nápovědu nebo opravu jsi využil(a) ${state.wrong}×. Procento vyjadřuje samostatnost prvního postupu; splnění učiva je kompletní.`;
+        document.getElementById('solutionSteps').innerHTML = `
+          <div class="solution-step"><strong>Převod proudu</strong><span>${v.current} = ${format(v.currentA)} A</span></div>
+          <div class="solution-step"><strong>Převod času</strong><span>${v.time} = ${format(v.timeS)} s</span></div>
+          <div class="solution-step"><strong>Náboj</strong><span>Q = I·t = ${format(v.currentA)}·${format(v.timeS)} = ${format(v.charge)} C</span></div>
+          <div class="solution-step"><strong>Počet elektronů</strong><span>N = Q/e ≈ ${format(v.mantissa, 3)} × 10<sup>${v.exponent}</sup></span></div>`;
+        document.getElementById('resultCard').classList.add('show');
+        document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      document.getElementById('printResult').addEventListener('click', () => window.print());
+      document.getElementById('restartLesson').addEventListener('click', () => window.location.reload());
+
+      document.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' || !event.target.matches('input')) return;
+        const unitTask = event.target.closest('.task');
+        const quiz = event.target.closest('.quiz-question');
+        if (unitTask) unitTask.querySelector('.check-btn')?.click();
+        else if (quiz) quiz.querySelector('[data-check-numeric]')?.click();
+        else if (event.target.closest('.calculation-form')) document.getElementById('checkFinal').click();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>
