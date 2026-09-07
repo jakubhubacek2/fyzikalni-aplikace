@@ -493,60 +493,173 @@
         </aside>
       </section>
 
-      <section aria-labelledby="applications-title">
+      <section class="catalog" aria-labelledby="applications-title">
         <div class="section-head">
           <div>
-            <span class="eyebrow">Vyber si téma</span>
-            <h2 id="applications-title">Pět cest do fyziky</h2>
+            <span class="eyebrow">Vyber si předmět</span>
+            <h2 id="applications-title">Výukové aplikace</h2>
           </div>
-          <span class="count">5 aplikací</span>
+          <span class="count">6 aplikací</span>
         </div>
 
-        <div class="cards">
-          <a class="card" href="idealni-plyn.html" aria-label="Otevřít Plyn pod lupou — stavová rovnice a děje v ideálním plynu">
-            <div class="visual" aria-hidden="true"><span style="font:800 38px Georgia,serif;color:#345970">pV = nRT</span></div>
-            <span class="tag">Molekulová fyzika</span>
-            <h3>Plyn pod lupou</h3>
-            <p class="description">Od pohybu molekul přes stavovou rovnici a interaktivní grafy až k práci plynu a tepelným motorům.</p>
-            <div class="meta"><span class="pill">1.–2. ročník</span><span class="pill">2 × 45 minut</span></div>
-            <span class="enter">Vstoupit do laboratoře <span class="arrow" aria-hidden="true">→</span></span>
-          </a>
-          <a class="card" href="uvod-do-elektrotechniky.html" aria-label="Otevřít Elektrostart — úvod do elektrotechniky">
-            <div class="visual" aria-hidden="true"><div class="atom-preview"></div></div>
-            <span class="tag">Základní pojmy</span>
-            <h3>Elektrostart</h3>
-            <p class="description">Od vědeckého zápisu a převodů jednotek přes stavbu atomu až k náboji, poli a proudu v látkách.</p>
-            <div class="meta"><span class="pill">1. ročník</span><span class="pill">45 minut</span></div>
-            <span class="enter">Spustit lekci <span class="arrow" aria-hidden="true">→</span></span>
-          </a>
+        <section class="subject subject-physics" aria-labelledby="physics-title">
+          <header class="subject-head">
+            <span class="subject-code" aria-hidden="true">FY</span>
+            <div>
+              <span class="subject-kicker">Předmět 01</span>
+              <h3 class="subject-title" id="physics-title">Fyzika</h3>
+              <p class="subject-description">Mechanika, termika a zákonitosti, které popisují svět kolem nás.</p>
+            </div>
+            <span class="subject-count">3 aplikace</span>
+          </header>
 
-          <a class="card" href="kirchhoffova-dilna.html" aria-label="Otevřít Kirchhoffovu dílnu">
-            <div class="visual" aria-hidden="true"><div class="circuit"><span class="bolt">ϟ</span></div></div>
-            <span class="tag">Elektrotechnika</span>
-            <h3>Kirchhoffova dílna</h3>
-            <p class="description">Projdi od uzlu ke smyčce, sestav rovnice a vypočítej proudy v obvodu krok za krokem.</p>
-            <div class="meta"><span class="pill">1. ročník</span><span class="pill">45 minut</span></div>
-            <span class="enter">Vstoupit do dílny <span class="arrow" aria-hidden="true">→</span></span>
-          </a>
+          <div class="cards">
+            <a class="card" href="fyzika-start-jednotky.html" aria-label="Otevřít Fyzika START — úvod, veličiny, jednotky SI a převody">
+              <div class="visual visual-physics" aria-hidden="true">
+                <svg viewBox="0 0 320 160" role="img">
+                  <g stroke="#9bb0bd" stroke-width="1" opacity=".28"><path d="M25 30h270M25 65h270M25 100h270M25 135h270M62 20v125M111 20v125M160 20v125M209 20v125M258 20v125"/></g>
+                  <path d="M50 121h213" class="diagram-line" stroke-width="3"/>
+                  <path d="M68 112V77M111 112V55M154 112V88M197 112V35M240 112V68" class="diagram-line diagram-accent" stroke-width="9"/>
+                  <text x="48" y="145" class="diagram-muted">m</text><text x="103" y="145" class="diagram-muted">10³</text><text x="150" y="145" class="diagram-muted">10⁰</text><text x="199" y="145" class="diagram-muted">10⁻³</text><text x="245" y="145" class="diagram-muted">m²</text>
+                  <text x="38" y="34" class="diagram-text">6,02 · 10²³</text>
+                  <circle cx="264" cy="34" r="13" fill="#dbf82a"/><path d="M258 34l5 5 9-11" fill="none" stroke="#2f4d63" stroke-width="3"/>
+                </svg>
+              </div>
+              <span class="tag">Úvod do fyziky</span>
+              <h3>Fyzika START</h3>
+              <p class="description">První hodina fyziky: veličiny, sedm základních jednotek SI, vědecký zápis, převody a diagnostický kvíz.</p>
+              <div class="meta"><span class="pill">1. ročník</span><span class="pill">45 minut</span></div>
+              <span class="enter">Začít hodinu <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
 
-          <a class="card card-resistor" href="trenazer-rezistoru.html" aria-label="Otevřít trenažér rezistorů">
-            <div class="visual" aria-hidden="true"><div class="resistor"><div class="bands"></div></div></div>
-            <span class="tag">Elektronika</span>
-            <h3>Trenažér rezistorů</h3>
-            <p class="description">Natrénuj čtení barevného kódu čtyřproužkových i pětiproužkových rezistorů bez tabulky.</p>
-            <div class="meta"><span class="pill">Adaptivní úlohy</span><span class="pill">Barevný kód</span></div>
-            <span class="enter">Spustit trénink <span class="arrow" aria-hidden="true">→</span></span>
-          </a>
+            <a class="card" href="idealni-plyn.html" aria-label="Otevřít Plyn pod lupou — stavová rovnice a děje v ideálním plynu">
+              <div class="visual visual-physics" aria-hidden="true">
+                <svg viewBox="0 0 320 160" role="img">
+                  <defs>
+                    <linearGradient id="gasGlass" x1="0" x2="1"><stop stop-color="#d8eef4" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity=".08"/></linearGradient>
+                  </defs>
+                  <rect x="51" y="25" width="148" height="104" rx="5" fill="url(#gasGlass)" stroke="#cfe0e8" stroke-width="3"/>
+                  <path d="M43 35h164M68 20v19M190 20v19" class="diagram-line" stroke-width="5"/>
+                  <rect x="57" y="36" width="136" height="12" rx="2" fill="#aebfc9"/>
+                  <path d="M125 20V7h43v13" class="diagram-line diagram-accent" stroke-width="4"/>
+                  <g fill="#dbf82a">
+                    <circle cx="78" cy="70" r="5"/><circle cx="111" cy="91" r="4"/><circle cx="153" cy="66" r="5"/><circle cx="176" cy="104" r="4"/><circle cx="88" cy="115" r="4"/><circle cx="139" cy="112" r="4"/>
+                  </g>
+                  <g class="diagram-line" stroke-width="1.5" opacity=".72"><path d="M74 66l-9-7M115 88l11-7M157 70l9 7M172 101l-10-5M92 112l10-7M135 109l-8-8"/></g>
+                  <path d="M203 74h23" class="diagram-line" stroke-width="3"/>
+                  <circle cx="249" cy="74" r="25" fill="#fff" stroke="#dbf82a" stroke-width="4"/>
+                  <path d="M249 74l11-12" stroke="#2f4d63" stroke-width="3" stroke-linecap="round"/>
+                  <circle cx="249" cy="74" r="3" fill="#2f4d63"/>
+                  <path d="M76 144c-8-8 8-12 0-20M112 144c-8-8 8-12 0-20M148 144c-8-8 8-12 0-20" class="diagram-line diagram-accent" stroke-width="3"/>
+                  <text x="225" y="115" class="diagram-text">p · V = n · R · T</text>
+                  <text x="58" y="20" class="diagram-muted">POHYBLIVÝ PÍST</text>
+                </svg>
+              </div>
+              <span class="tag">Molekulová fyzika</span>
+              <h3>Plyn pod lupou</h3>
+              <p class="description">Od pohybu molekul přes stavovou rovnici a interaktivní grafy až k práci plynu a tepelným motorům.</p>
+              <div class="meta"><span class="pill">1.–2. ročník</span><span class="pill">2 × 45 minut</span></div>
+              <span class="enter">Vstoupit do laboratoře <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
 
-          <a class="card card-projectile" href="vrh-sikmy-badatelna.html" aria-label="Otevřít badatelnu šikmého vrhu">
-            <div class="visual" aria-hidden="true"><div class="trajectory"></div></div>
-            <span class="tag">Mechanika</span>
-            <h3>Vrh šikmý — badatelna</h3>
-            <p class="description">Měň úhel a rychlost, porovnávej trajektorie a experimentálně odhal podmínky největšího dosahu.</p>
-            <div class="meta"><span class="pill">Simulace</span><span class="pill">Měření dosahu</span></div>
-            <span class="enter">Otevřít badatelnu <span class="arrow" aria-hidden="true">→</span></span>
-          </a>
-        </div>
+            <a class="card card-projectile" href="vrh-sikmy-badatelna.html" aria-label="Otevřít badatelnu šikmého vrhu">
+              <div class="visual visual-physics" aria-hidden="true">
+                <svg viewBox="0 0 320 160" role="img">
+                  <g stroke="#9bb0bd" stroke-width="1" opacity=".28"><path d="M28 24v112M72 24v112M116 24v112M160 24v112M204 24v112M248 24v112M292 24v112M28 48h264M28 76h264M28 104h264M28 132h264"/></g>
+                  <path d="M28 132h264" class="diagram-line" stroke-width="3"/>
+                  <path d="M48 126C95 37 184 29 277 123" fill="none" stroke="#dbf82a" stroke-width="4" stroke-dasharray="8 6"/>
+                  <circle cx="170" cy="48" r="8" fill="#fff" stroke="#dbf82a" stroke-width="3"/>
+                  <path d="M47 125l34-43" class="diagram-line" stroke-width="10"/>
+                  <path d="M42 131h47l-10-17H53z" fill="#aebfc9"/>
+                  <path d="M49 124l25-7" class="diagram-line diagram-accent" stroke-width="3"/>
+                  <path d="M52 120l18-30" class="diagram-line diagram-accent" stroke-width="2"/>
+                  <path d="M69 91l-1 9M69 91l-9 3" class="diagram-line diagram-accent" stroke-width="2"/>
+                  <path d="M49 143h228M49 139v8M277 139v8" class="diagram-line" stroke-width="2"/>
+                  <text x="146" y="155" class="diagram-muted">DOSAH R</text>
+                  <text x="80" y="82" class="diagram-text">v₀</text>
+                  <text x="52" y="120" class="diagram-muted">α</text>
+                </svg>
+              </div>
+              <span class="tag">Mechanika</span>
+              <h3>Vrh šikmý — badatelna</h3>
+              <p class="description">Měň úhel a rychlost, porovnávej trajektorie a experimentálně odhal podmínky největšího dosahu.</p>
+              <div class="meta"><span class="pill">Simulace</span><span class="pill">Měření dosahu</span></div>
+              <span class="enter">Otevřít badatelnu <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
+          </div>
+        </section>
+
+        <section class="subject subject-electro" aria-labelledby="electrical-title">
+          <header class="subject-head">
+            <span class="subject-code" aria-hidden="true">EL</span>
+            <div>
+              <span class="subject-kicker">Předmět 02</span>
+              <h3 class="subject-title" id="electrical-title">Elektrotechnika</h3>
+              <p class="subject-description">Elektrický náboj, obvody, součástky a praktické výpočty.</p>
+            </div>
+            <span class="subject-count">3 aplikace</span>
+          </header>
+
+          <div class="cards">
+            <a class="card" href="uvod-do-elektrotechniky.html" aria-label="Otevřít Elektrostart — úvod do elektrotechniky">
+              <div class="visual visual-electro" aria-hidden="true">
+                <svg viewBox="0 0 320 160" role="img">
+                  <g transform="translate(118 79)" fill="none" stroke="#cbdbe3" stroke-width="2" opacity=".9">
+                    <ellipse rx="74" ry="28" transform="rotate(18)"/>
+                    <ellipse rx="74" ry="28" transform="rotate(78)"/>
+                    <ellipse rx="74" ry="28" transform="rotate(138)"/>
+                  </g>
+                  <g fill="#dbf82a" stroke="#213c50" stroke-width="2"><circle cx="107" cy="72" r="12"/><circle cx="126" cy="72" r="12"/><circle cx="116" cy="90" r="12"/></g>
+                  <g fill="#47657d" stroke="#fff" stroke-width="2"><circle cx="116" cy="79" r="11"/><circle cx="130" cy="87" r="10"/></g>
+                  <g fill="#fff" stroke="#dbf82a" stroke-width="3"><circle cx="56" cy="78" r="6"/><circle cx="155" cy="24" r="6"/><circle cx="169" cy="123" r="6"/></g>
+                  <path d="M208 43h33v22h39v52h-72z" class="diagram-line" stroke-width="3"/>
+                  <path d="M222 43V29h43v14M240 29v-9M252 29V14" class="diagram-line diagram-accent" stroke-width="3"/>
+                  <circle cx="208" cy="43" r="5" fill="#dbf82a"/><circle cx="280" cy="117" r="5" fill="#dbf82a"/>
+                  <path d="M227 117h34M239 110v14M250 106v22" class="diagram-line" stroke-width="2"/>
+                  <text x="205" y="139" class="diagram-muted">NÁBOJ → POLE → PROUD</text>
+                </svg>
+              </div>
+              <span class="tag">Základní pojmy</span>
+              <h3>Elektrostart</h3>
+              <p class="description">Od vědeckého zápisu a převodů jednotek přes stavbu atomu až k náboji, poli a proudu v látkách.</p>
+              <div class="meta"><span class="pill">1. ročník</span><span class="pill">45 minut</span></div>
+              <span class="enter">Spustit lekci <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
+
+            <a class="card" href="kirchhoffova-dilna.html" aria-label="Otevřít Kirchhoffovu dílnu">
+              <div class="visual visual-electro" aria-hidden="true">
+                <svg viewBox="0 0 320 160" role="img">
+                  <g class="diagram-line" stroke-width="3">
+                    <path d="M32 34h58l8-10 14 20 14-20 14 20 14-10h42"/>
+                    <path d="M196 34h83v92h-67"/>
+                    <path d="M32 34v92h70M154 126h58"/>
+                    <path d="M196 34v37h-28l-8-10-14 20-14-20-14 20-8-10H82v55"/>
+                  </g>
+                  <g stroke="#dbf82a" stroke-width="3"><path d="M102 113v26M114 107v38"/><path d="M154 113v26M166 107v38"/></g>
+                  <g fill="#dbf82a"><circle cx="32" cy="34" r="6"/><circle cx="196" cy="34" r="6"/><circle cx="82" cy="71" r="6"/><circle cx="196" cy="71" r="6"/><circle cx="279" cy="126" r="6"/></g>
+                  <g class="diagram-line diagram-accent" stroke-width="2"><path d="M49 25h23M66 20l7 5-7 5"/><path d="M215 117h28M237 112l7 5-7 5"/></g>
+                  <text x="109" y="20" class="diagram-text">R₁</text><text x="139" y="57" class="diagram-text">R₂</text>
+                  <text x="42" y="23" class="diagram-muted">I₁</text><text x="217" y="112" class="diagram-muted">I₂</text>
+                  <text x="100" y="155" class="diagram-muted">U₁</text><text x="153" y="155" class="diagram-muted">U₂</text>
+                </svg>
+              </div>
+              <span class="tag">Elektrické obvody</span>
+              <h3>Kirchhoffova dílna</h3>
+              <p class="description">Projdi od uzlu ke smyčce, sestav rovnice a vypočítej proudy v obvodu krok za krokem.</p>
+              <div class="meta"><span class="pill">1. ročník</span><span class="pill">45 minut</span></div>
+              <span class="enter">Vstoupit do dílny <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
+
+            <a class="card card-resistor" href="trenazer-rezistoru.html" aria-label="Otevřít trenažér rezistorů">
+              <div class="visual" aria-hidden="true"><div class="resistor"><div class="bands"></div></div></div>
+              <span class="tag">Elektronika</span>
+              <h3>Trenažér rezistorů</h3>
+              <p class="description">Natrénuj čtení barevného kódu čtyřproužkových i pětiproužkových rezistorů bez tabulky.</p>
+              <div class="meta"><span class="pill">Adaptivní úlohy</span><span class="pill">Barevný kód</span></div>
+              <span class="enter">Spustit trénink <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
+          </div>
+        </section>
       </section>
     </main>
 

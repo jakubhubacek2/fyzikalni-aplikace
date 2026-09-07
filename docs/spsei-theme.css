@@ -199,8 +199,100 @@ select:focus-visible,
 .home-page .formula-note strong { color: var(--spsei-green); font-family: inherit; }
 .home-page .formula-note p { color: #f0f4f6; }
 
-.home-page .section-head { margin-bottom: 26px; }
+.home-page .section-head { margin-bottom: 34px; }
 .home-page h2 { color: var(--spsei-blue); font-weight: 700; }
+
+.home-page .catalog { padding-bottom: 18px; }
+
+.home-page .subject {
+  --subject-accent: var(--spsei-blue);
+  position: relative;
+  margin-top: 28px;
+  padding: 0 28px 30px;
+  border: 1px solid var(--spsei-sky);
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 16px 42px rgba(47,77,99,.08);
+}
+
+.home-page .subject + .subject { margin-top: 54px; }
+
+.home-page .subject-head {
+  min-height: 126px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 22px;
+  margin: 0 -28px 30px;
+  padding: 24px 28px;
+  color: var(--spsei-blue-dark);
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.72), rgba(255,255,255,.9)),
+    repeating-linear-gradient(90deg, var(--spsei-sky) 0 1px, transparent 1px 18px),
+    var(--spsei-mist);
+  border-bottom: 1px solid var(--spsei-sky);
+}
+
+.home-page .subject-electro .subject-head {
+  color: #fff;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.055) 0 1px, transparent 1px 18px),
+    var(--spsei-blue-dark);
+  border-bottom-color: var(--spsei-green);
+}
+
+.home-page .subject-code {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  color: var(--spsei-blue-dark);
+  background: var(--spsei-green);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -.06em;
+  box-shadow: 7px 7px 0 rgba(33,60,80,.18);
+}
+
+.home-page .subject-kicker {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--spsei-blue-deep);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.home-page .subject-electro .subject-kicker { color: var(--spsei-green); }
+
+.home-page .subject-title {
+  margin: 0;
+  color: inherit;
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+
+.home-page .subject-description {
+  max-width: 700px;
+  margin: 8px 0 0;
+  color: #617381;
+  font-size: 14px;
+}
+
+.home-page .subject-electro .subject-description { color: #dbe5eb; }
+
+.home-page .subject-count {
+  align-self: start;
+  padding: 7px 10px;
+  color: var(--spsei-blue-dark);
+  background: var(--spsei-green);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.home-page .subject-physics .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .home-page .cards {
   counter-reset: application;
@@ -246,6 +338,39 @@ select:focus-visible,
     var(--spsei-blue);
 }
 
+.home-page .visual svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.home-page .visual-physics {
+  background:
+    linear-gradient(135deg, rgba(219,248,42,.09), transparent 52%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.055) 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(rgba(255,255,255,.045) 0 1px, transparent 1px 15px),
+    var(--spsei-blue-deep);
+}
+
+.home-page .visual-electro {
+  background:
+    radial-gradient(circle at 72% 24%, rgba(219,248,42,.14), transparent 34%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(rgba(255,255,255,.04) 0 1px, transparent 1px 15px),
+    var(--spsei-blue-dark);
+}
+
+.home-page .diagram-line {
+  fill: none;
+  stroke: #dce6eb;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-page .diagram-accent { stroke: var(--spsei-green); }
+.home-page .diagram-text { fill: #fff; font: 700 11px var(--spsei-font); }
+.home-page .diagram-muted { fill: #aebfc9; font: 600 9px var(--spsei-font); }
+
 .home-page .visual .circuit,
 .home-page .visual .resistor { border-color: var(--spsei-green); }
 .home-page .visual .circuit::before,
@@ -271,6 +396,26 @@ select:focus-visible,
 }
 
 .home-page footer { border-top-color: var(--spsei-sky); }
+
+@media (max-width: 850px) {
+  .home-page .subject-physics .cards { grid-template-columns: 1fr; }
+  .home-page .subject-head { grid-template-columns: auto 1fr; }
+  .home-page .subject-count { grid-column: 2; justify-self: start; }
+}
+
+@media (max-width: 580px) {
+  .home-page .subject { padding: 0 16px 18px; }
+  .home-page .subject + .subject { margin-top: 34px; }
+  .home-page .subject-head {
+    min-height: 0;
+    gap: 15px;
+    margin: 0 -16px 20px;
+    padding: 20px 16px;
+  }
+  .home-page .subject-code { width: 50px; height: 50px; font-size: 16px; }
+  .home-page .subject-title { font-size: 29px; }
+  .home-page .subject-description { font-size: 12px; }
+}
 
 /* Shared application frame */
 .kirchhoff-app,
