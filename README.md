@@ -13,10 +13,11 @@ Veřejný rozcestník: **<https://jakubhubacek2.github.io/fyzikalni-aplikace/>**
 - [Za hranicí klasiky](https://jakubhubacek2.github.io/fyzikalni-aplikace/relativisticka-dynamika.html) – relativistická dynamika, hmotnost a energie (2. ročník, 45 minut).
 - [Vrh šikmý – badatelna](https://jakubhubacek2.github.io/fyzikalni-aplikace/vrh-sikmy-badatelna.html) – simulace a měření dosahu.
 
-## Elektrotechnika (3 aplikace)
+## Elektrotechnika (4 aplikace)
 
 - [Elektrostart](https://jakubhubacek2.github.io/fyzikalni-aplikace/uvod-do-elektrotechniky.html) – úvod do elektrotechniky.
 - [Kirchhoffova dílna](https://jakubhubacek2.github.io/fyzikalni-aplikace/kirchhoffova-dilna.html).
+- [Energetická dílna](https://jakubhubacek2.github.io/fyzikalni-aplikace/energeticka-dilna.html) – práce a výkon elektrického proudu, zdroje napětí a proudu, dvě laboratoře a procvičování (2. ročník, 2 × 45 minut). Samostatný HTML soubor funguje offline.
 - [Trenažér rezistorů](https://jakubhubacek2.github.io/fyzikalni-aplikace/trenazer-rezistoru.html).
 
 ## Průvodci pro vyučující
@@ -24,6 +25,7 @@ Veřejný rozcestník: **<https://jakubhubacek2.github.io/fyzikalni-aplikace/>**
 - [Plyn pod lupou](docs/idealni-plyn-pruvodce.md)
 - [Uvnitř atomu](docs/atomova-fyzika-pruvodce.md)
 - [Za hranicí klasiky](docs/relativisticka-dynamika-pruvodce.md)
+- [Energetická dílna](docs/energeticka-dilna-pruvodce.md)
 
 ## Publikování
 
